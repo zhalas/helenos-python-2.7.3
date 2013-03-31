@@ -313,6 +313,7 @@ class PyBuildExt(build_ext):
             self.failed.append(ext.name)
             self.announce('*** WARNING: renaming "%s" since importing it'
                           ' failed: %s' % (ext.name, why), level=3)
+            return
             assert not self.inplace
             basename, tail = os.path.splitext(ext_filename)
             newname = basename + "_failed" + tail
@@ -369,8 +370,8 @@ class PyBuildExt(build_ext):
 
     def detect_modules(self):
         # Ensure that /usr/local is always used
-        add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
-        add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
+        #add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+        #add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
         self.add_multiarch_paths()
 
         # Add paths specified in the environment variables LDFLAGS and
@@ -474,6 +475,9 @@ class PyBuildExt(build_ext):
             math_libs = []
 
         # XXX Omitted modules: gl, pure, dl, SGI-specific modules
+
+        lib_dirs = [ os.getenv("STAGING_LIBDIR"),  os.getenv("STAGING_BASELIBDIR") ]
+        inc_dirs = [ os.getenv("STAGING_INCDIR") ]
 
         #
         # The following modules are all pretty straightforward, and compile
@@ -677,8 +681,8 @@ class PyBuildExt(build_ext):
             elif curses_library:
                 readline_libs.append(curses_library)
             elif self.compiler.find_library_file(lib_dirs +
-                                                     ['/usr/lib/termcap'],
-                                                     'termcap'):
+                                               ['/usr/lib/termcap'],
+                                               'termcap'):
                 readline_libs.append('termcap')
             exts.append( Extension('readline', ['readline.c'],
                                    library_dirs=['/usr/lib/termcap'],
