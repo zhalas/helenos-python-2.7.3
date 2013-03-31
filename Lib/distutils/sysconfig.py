@@ -26,6 +26,9 @@ EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
 # live in project/PCBuild9.  If we're dealing with an x64 Windows build,
 # it'll live in project/PCbuild/amd64.
 project_base = os.path.dirname(os.path.abspath(sys.executable))
+_PYTHONBUILDDIR = os.environ.get("PYTHONBUILDDIR", None)
+if _PYTHONBUILDDIR:
+    project_base = _PYTHONBUILDDIR
 if os.name == "nt" and "pcbuild" in project_base[-8:].lower():
     project_base = os.path.abspath(os.path.join(project_base, os.path.pardir))
 # PC/VS7.1
@@ -244,7 +247,7 @@ def get_config_h_filename():
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
     if python_build:
-        return os.path.join(os.path.dirname(sys.executable), "Makefile")
+        return os.path.join(project_base, "Makefile")
     lib_dir = get_python_lib(plat_specific=1, standard_lib=1)
     return os.path.join(lib_dir, "config", "Makefile")
 

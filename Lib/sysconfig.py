@@ -93,6 +93,7 @@ _PREFIX = os.path.normpath(sys.prefix)
 _EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
 _CONFIG_VARS = None
 _USER_BASE = None
+_PYTHONBUILDDIR = os.environ.get("PYTHONBUILDDIR", None)
 
 def _safe_realpath(path):
     try:
@@ -100,7 +101,9 @@ def _safe_realpath(path):
     except OSError:
         return path
 
-if sys.executable:
+if _PYTHONBUILDDIR:
+    _PROJECT_BASE = _PYTHONBUILDDIR
+elif sys.executable:
     _PROJECT_BASE = os.path.dirname(_safe_realpath(sys.executable))
 else:
     # sys.executable can be empty if argv[0] has been changed and Python is
