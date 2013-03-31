@@ -3,6 +3,8 @@
 
 #include "Python.h"
 
+#undef COMPILER
+
 #ifndef COMPILER
 
 #ifdef __GNUC__
