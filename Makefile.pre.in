@@ -367,7 +367,7 @@ LIBRARY_OBJS=	\
 
 # Default target
 all:		build_all
-build_all:	$(BUILDPYTHON) oldsharedmods sharedmods gdbhooks
+build_all:	$(BUILDPYTHON) gdbhooks
 
 # Compile a binary with gcc profile guided optimization.
 profile-opt:
@@ -404,14 +404,6 @@ $(BUILDPYTHON):	Modules/python.o $(LIBRARY) $(LDLIBRARY)
 
 platform: $(BUILDPYTHON)
 	$(RUNSHARED) ./$(BUILDPYTHON) -E -c 'import sys ; from distutils.util import get_platform ; print get_platform()+"-"+sys.version[0:3]' >platform
-
-
-# Build the shared modules
-sharedmods: $(BUILDPYTHON)
-	@case $$MAKEFLAGS in \
-	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' $(HOSTPYTHON) -E $(srcdir)/setup.py -q build;; \
-	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' $(HOSTPYTHON) -E $(srcdir)/setup.py build;; \
-	esac
 
 # Build static library
 # avoid long command lines, same as LIBRARY_OBJS
@@ -481,9 +473,6 @@ $(DLLLIBRARY) libpython$(VERSION).dll.a: $(LIBRARY_OBJS)
 			$(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST); \
 	else true; \
 	fi
-
-
-oldsharedmods: $(SHAREDMODS)
 
 
 Makefile Modules/config.c: Makefile.pre \
@@ -764,18 +753,11 @@ install:	@FRAMEWORKINSTALLFIRST@ altinstall bininstall maninstall @FRAMEWORKINST
 
 # Install almost everything without disturbing previous versions
 altinstall:	@FRAMEWORKALTINSTALLFIRST@ altbininstall libinstall inclinstall libainstall \
-                sharedinstall oldsharedinstall @FRAMEWORKALTINSTALLLAST@
+                @FRAMEWORKALTINSTALLLAST@
 
 # Install shared libraries enabled by Setup
 DESTDIRS=	$(exec_prefix) $(LIBDIR) $(BINLIBDEST) $(DESTSHARED)
 
-oldsharedinstall: $(DESTSHARED) $(SHAREDMODS)
-		@for i in X $(SHAREDMODS); do \
-		  if test $$i != X; then \
-		    echo $(INSTALL_SHARED) $$i $(DESTSHARED)/`basename $$i`; \
-		    $(INSTALL_SHARED) $$i $(DESTDIR)$(DESTSHARED)/`basename $$i`; \
-		  fi; \
-		done
 
 $(DESTSHARED):
 		@for i in $(DESTDIRS); \
@@ -1060,15 +1042,6 @@ libainstall:	all python-config
 		;; \
 	esac
 
-# Install the dynamically loadable modules
-# This goes into $(exec_prefix)
-sharedinstall: sharedmods
-	$(RUNSHARED) $(HOSTPYTHON) -E $(srcdir)/setup.py install \
-	   	--prefix=$(prefix) \
-		--install-scripts=$(BINDIR) \
-		--install-platlib=$(DESTSHARED) \
-		--root=$(DESTDIR)/
-
 # Here are a couple of targets for MacOSX again, to install a full
 # framework-based Python. frameworkinstall installs everything, the
 # subtargets install specific parts. Much of the actual work is offloaded to
@@ -1268,9 +1241,9 @@ patchcheck:
 Python/thread.o: @THREADHEADERS@
 
 # Declare targets that aren't real files
-.PHONY: all build_all sharedmods oldsharedmods test quicktest memtest
-.PHONY: install altinstall oldsharedinstall bininstall altbininstall
-.PHONY: maninstall libinstall inclinstall libainstall sharedinstall
+.PHONY: all build_all test quicktest memtest
+.PHONY: install altinstall bininstall altbininstall
+.PHONY: maninstall libinstall inclinstall libainstall
 .PHONY: frameworkinstall frameworkinstallframework frameworkinstallstructure
 .PHONY: frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools
 .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean 
