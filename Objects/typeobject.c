@@ -6199,19 +6199,13 @@ update_slots_callback(PyTypeObject *type, void *data)
     return 0;
 }
 
-/* Comparison function for qsort() to compare slotdefs by their offset, and
-   for equal offset by their address (to force a stable sort). */
+/* Comparison function for qsort() to compare slotdefs by their offset */
 static int
 slotdef_cmp(const void *aa, const void *bb)
 {
     const slotdef *a = (const slotdef *)aa, *b = (const slotdef *)bb;
     int c = a->offset - b->offset;
-    if (c != 0)
-        return c;
-    else
-        /* Cannot use a-b, as this gives off_t,
-           which may lose precision when converted to int. */
-        return (a > b) ? 1 : (a < b) ? -1 : 0;
+    return c;
 }
 
 /* Initialize the slotdefs table by adding interned string objects for the
