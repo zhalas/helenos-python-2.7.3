@@ -159,6 +159,22 @@ corresponding Unix manual entries for more information on calls.");
 #endif  /* ! __WATCOMC__ || __QNX__ */
 #endif /* ! __IBMC__ */
 
+/* Undefine some features HelenOS does not have, but they are either
+ * defined above or misdetected (like HAVE_DEV_PTMX)
+ */
+
+#undef HAVE_OPENPTY
+#undef HAVE_FORKPTY
+#undef HAVE_DEV_PTMX
+#undef HAVE_DEV_PTC
+#undef HAVE_POPEN
+#undef HAVE_GETPPID
+#undef HAVE_GETUID
+#undef HAVE_GETEUID
+#undef HAVE_GETEGID
+#undef HAVE_EXECV
+#undef HAVE_TTYNAME
+
 #ifndef _MSC_VER
 
 #if defined(__sgi)&&_COMPILER_VERSION>=700
