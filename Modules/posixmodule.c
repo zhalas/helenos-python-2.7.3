@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-PyDoc_STRVAR(posix__doc__,
+PyDoc_STRVAR(pyposix__doc__,
 "This module provides access to operating system functionality that is\n\
 standardized by the C Standard and the POSIX standard (a thinly\n\
 disguised Unix interface).  Refer to the library manual and\n\
@@ -515,19 +515,19 @@ convertenviron(void)
 /* Set a POSIX-specific error from errno, and return NULL */
 
 static PyObject *
-posix_error(void)
+pyposix_error(void)
 {
     return PyErr_SetFromErrno(PyExc_OSError);
 }
 static PyObject *
-posix_error_with_filename(char* name)
+pyposix_error_with_filename(char* name)
 {
     return PyErr_SetFromErrnoWithFilename(PyExc_OSError, name);
 }
 
 #ifdef MS_WINDOWS
 static PyObject *
-posix_error_with_unicode_filename(Py_UNICODE* name)
+pyposix_error_with_unicode_filename(Py_UNICODE* name)
 {
     return PyErr_SetFromErrnoWithUnicodeFilename(PyExc_OSError, name);
 }
@@ -535,7 +535,7 @@ posix_error_with_unicode_filename(Py_UNICODE* name)
 
 
 static PyObject *
-posix_error_with_allocated_filename(char* name)
+pyposix_error_with_allocated_filename(char* name)
 {
     PyObject *rc = PyErr_SetFromErrnoWithFilename(PyExc_OSError, name);
     PyMem_Free(name);
@@ -668,7 +668,7 @@ os2_error(int code)
 /* POSIX generic methods */
 
 static PyObject *
-posix_fildes(PyObject *fdobj, int (*func)(int))
+pyposix_fildes(PyObject *fdobj, int (*func)(int))
 {
     int fd;
     int res;
@@ -676,18 +676,18 @@ posix_fildes(PyObject *fdobj, int (*func)(int))
     if (fd < 0)
         return NULL;
     if (!_PyVerify_fd(fd))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
     res = (*func)(fd);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 static PyObject *
-posix_1str(PyObject *args, char *format, int (*func)(const char*))
+pyposix_1str(PyObject *args, char *format, int (*func)(const char*))
 {
     char *path1 = NULL;
     int res;
@@ -698,14 +698,14 @@ posix_1str(PyObject *args, char *format, int (*func)(const char*))
     res = (*func)(path1);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path1);
+        return pyposix_error_with_allocated_filename(path1);
     PyMem_Free(path1);
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 static PyObject *
-posix_2str(PyObject *args,
+pyposix_2str(PyObject *args,
            char *format,
            int (*func)(const char *, const char *))
 {
@@ -722,7 +722,7 @@ posix_2str(PyObject *args,
     PyMem_Free(path2);
     if (res != 0)
         /* XXX how to report both path1 and path2??? */
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1282,7 +1282,7 @@ fill_time(PyObject *v, int index, time_t sec, unsigned long nsec)
 }
 
 /* pack a system stat C structure into the Python stat tuple
-   (used by posix_stat() and posix_fstat()) */
+   (used by pyposix_stat() and pyposix_fstat()) */
 static PyObject*
 _pystat_fromstructstat(STRUCT_STAT *st)
 {
@@ -1442,7 +1442,7 @@ IsUNCRootW(Py_UNICODE *path, int pathlen)
 #endif /* MS_WINDOWS */
 
 static PyObject *
-posix_do_stat(PyObject *self, PyObject *args,
+pyposix_do_stat(PyObject *self, PyObject *args,
               char *format,
 #ifdef __VMS
               int (*statfunc)(const char *, STRUCT_STAT *, ...),
@@ -1491,7 +1491,7 @@ posix_do_stat(PyObject *self, PyObject *args,
 #ifdef MS_WINDOWS
         result = win32_error("stat", pathfree);
 #else
-        result = posix_error_with_filename(pathfree);
+        result = pyposix_error_with_filename(pathfree);
 #endif
     }
     else
@@ -1503,7 +1503,7 @@ posix_do_stat(PyObject *self, PyObject *args,
 
 /* POSIX methods */
 
-PyDoc_STRVAR(posix_access__doc__,
+PyDoc_STRVAR(pyposix_access__doc__,
 "access(path, mode) -> True if granted, False otherwise\n\n\
 Use the real uid/gid to test for access to a path.  Note that most\n\
 operations will use the effective uid/gid, therefore this routine can\n\
@@ -1512,7 +1512,7 @@ specified access to the path.  The mode argument can be F_OK to test\n\
 existence, or the inclusive-OR of R_OK, W_OK, and X_OK.");
 
 static PyObject *
-posix_access(PyObject *self, PyObject *args)
+pyposix_access(PyObject *self, PyObject *args)
 {
     char *path;
     int mode;
@@ -1575,12 +1575,12 @@ finish:
 #endif
 
 #ifdef HAVE_TTYNAME
-PyDoc_STRVAR(posix_ttyname__doc__,
+PyDoc_STRVAR(pyposix_ttyname__doc__,
 "ttyname(fd) -> string\n\n\
 Return the name of the terminal device connected to 'fd'.");
 
 static PyObject *
-posix_ttyname(PyObject *self, PyObject *args)
+pyposix_ttyname(PyObject *self, PyObject *args)
 {
     int id;
     char *ret;
@@ -1600,18 +1600,18 @@ posix_ttyname(PyObject *self, PyObject *args)
     ret = ttyname(id);
 #endif
     if (ret == NULL)
-        return posix_error();
+        return pyposix_error();
     return PyString_FromString(ret);
 }
 #endif
 
 #ifdef HAVE_CTERMID
-PyDoc_STRVAR(posix_ctermid__doc__,
+PyDoc_STRVAR(pyposix_ctermid__doc__,
 "ctermid() -> string\n\n\
 Return the name of the controlling terminal for this process.");
 
 static PyObject *
-posix_ctermid(PyObject *self, PyObject *noargs)
+pyposix_ctermid(PyObject *self, PyObject *noargs)
 {
     char *ret;
     char buffer[L_ctermid];
@@ -1622,49 +1622,49 @@ posix_ctermid(PyObject *self, PyObject *noargs)
     ret = ctermid(buffer);
 #endif
     if (ret == NULL)
-        return posix_error();
+        return pyposix_error();
     return PyString_FromString(buffer);
 }
 #endif
 
-PyDoc_STRVAR(posix_chdir__doc__,
+PyDoc_STRVAR(pyposix_chdir__doc__,
 "chdir(path)\n\n\
 Change the current working directory to the specified path.");
 
 static PyObject *
-posix_chdir(PyObject *self, PyObject *args)
+pyposix_chdir(PyObject *self, PyObject *args)
 {
 #ifdef MS_WINDOWS
     return win32_1str(args, "chdir", "s:chdir", win32_chdir, "U:chdir", win32_wchdir);
 #elif defined(PYOS_OS2) && defined(PYCC_GCC)
-    return posix_1str(args, "et:chdir", _chdir2);
+    return pyposix_1str(args, "et:chdir", _chdir2);
 #elif defined(__VMS)
-    return posix_1str(args, "et:chdir", (int (*)(const char *))chdir);
+    return pyposix_1str(args, "et:chdir", (int (*)(const char *))chdir);
 #else
-    return posix_1str(args, "et:chdir", chdir);
+    return pyposix_1str(args, "et:chdir", chdir);
 #endif
 }
 
 #ifdef HAVE_FCHDIR
-PyDoc_STRVAR(posix_fchdir__doc__,
+PyDoc_STRVAR(pyposix_fchdir__doc__,
 "fchdir(fildes)\n\n\
 Change to the directory of the given file descriptor.  fildes must be\n\
 opened on a directory, not a file.");
 
 static PyObject *
-posix_fchdir(PyObject *self, PyObject *fdobj)
+pyposix_fchdir(PyObject *self, PyObject *fdobj)
 {
-    return posix_fildes(fdobj, fchdir);
+    return pyposix_fildes(fdobj, fchdir);
 }
 #endif /* HAVE_FCHDIR */
 
 
-PyDoc_STRVAR(posix_chmod__doc__,
+PyDoc_STRVAR(pyposix_chmod__doc__,
 "chmod(path, mode)\n\n\
 Change the access permissions of a file.");
 
 static PyObject *
-posix_chmod(PyObject *self, PyObject *args)
+pyposix_chmod(PyObject *self, PyObject *args)
 {
     char *path = NULL;
     int i;
@@ -1726,7 +1726,7 @@ posix_chmod(PyObject *self, PyObject *args)
     res = chmod(path, i);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1734,13 +1734,13 @@ posix_chmod(PyObject *self, PyObject *args)
 }
 
 #ifdef HAVE_FCHMOD
-PyDoc_STRVAR(posix_fchmod__doc__,
+PyDoc_STRVAR(pyposix_fchmod__doc__,
 "fchmod(fd, mode)\n\n\
 Change the access permissions of the file given by file\n\
 descriptor fd.");
 
 static PyObject *
-posix_fchmod(PyObject *self, PyObject *args)
+pyposix_fchmod(PyObject *self, PyObject *args)
 {
     int fd, mode, res;
     if (!PyArg_ParseTuple(args, "ii:fchmod", &fd, &mode))
@@ -1749,19 +1749,19 @@ posix_fchmod(PyObject *self, PyObject *args)
     res = fchmod(fd, mode);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_RETURN_NONE;
 }
 #endif /* HAVE_FCHMOD */
 
 #ifdef HAVE_LCHMOD
-PyDoc_STRVAR(posix_lchmod__doc__,
+PyDoc_STRVAR(pyposix_lchmod__doc__,
 "lchmod(path, mode)\n\n\
 Change the access permissions of a file. If path is a symlink, this\n\
 affects the link itself rather than the target.");
 
 static PyObject *
-posix_lchmod(PyObject *self, PyObject *args)
+pyposix_lchmod(PyObject *self, PyObject *args)
 {
     char *path = NULL;
     int i;
@@ -1773,7 +1773,7 @@ posix_lchmod(PyObject *self, PyObject *args)
     res = lchmod(path, i);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_RETURN_NONE;
 }
@@ -1781,12 +1781,12 @@ posix_lchmod(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_CHFLAGS
-PyDoc_STRVAR(posix_chflags__doc__,
+PyDoc_STRVAR(pyposix_chflags__doc__,
 "chflags(path, flags)\n\n\
 Set file flags.");
 
 static PyObject *
-posix_chflags(PyObject *self, PyObject *args)
+pyposix_chflags(PyObject *self, PyObject *args)
 {
     char *path;
     unsigned long flags;
@@ -1798,7 +1798,7 @@ posix_chflags(PyObject *self, PyObject *args)
     res = chflags(path, flags);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1806,13 +1806,13 @@ posix_chflags(PyObject *self, PyObject *args)
 #endif /* HAVE_CHFLAGS */
 
 #ifdef HAVE_LCHFLAGS
-PyDoc_STRVAR(posix_lchflags__doc__,
+PyDoc_STRVAR(pyposix_lchflags__doc__,
 "lchflags(path, flags)\n\n\
 Set file flags.\n\
 This function will not follow symbolic links.");
 
 static PyObject *
-posix_lchflags(PyObject *self, PyObject *args)
+pyposix_lchflags(PyObject *self, PyObject *args)
 {
     char *path;
     unsigned long flags;
@@ -1824,7 +1824,7 @@ posix_lchflags(PyObject *self, PyObject *args)
     res = lchflags(path, flags);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1832,26 +1832,26 @@ posix_lchflags(PyObject *self, PyObject *args)
 #endif /* HAVE_LCHFLAGS */
 
 #ifdef HAVE_CHROOT
-PyDoc_STRVAR(posix_chroot__doc__,
+PyDoc_STRVAR(pyposix_chroot__doc__,
 "chroot(path)\n\n\
 Change root directory to path.");
 
 static PyObject *
-posix_chroot(PyObject *self, PyObject *args)
+pyposix_chroot(PyObject *self, PyObject *args)
 {
-    return posix_1str(args, "et:chroot", chroot);
+    return pyposix_1str(args, "et:chroot", chroot);
 }
 #endif
 
 #ifdef HAVE_FSYNC
-PyDoc_STRVAR(posix_fsync__doc__,
+PyDoc_STRVAR(pyposix_fsync__doc__,
 "fsync(fildes)\n\n\
 force write of file with filedescriptor to disk.");
 
 static PyObject *
-posix_fsync(PyObject *self, PyObject *fdobj)
+pyposix_fsync(PyObject *self, PyObject *fdobj)
 {
-    return posix_fildes(fdobj, fsync);
+    return pyposix_fildes(fdobj, fsync);
 }
 #endif /* HAVE_FSYNC */
 
@@ -1861,26 +1861,26 @@ posix_fsync(PyObject *self, PyObject *fdobj)
 extern int fdatasync(int); /* On HP-UX, in libc but not in unistd.h */
 #endif
 
-PyDoc_STRVAR(posix_fdatasync__doc__,
+PyDoc_STRVAR(pyposix_fdatasync__doc__,
 "fdatasync(fildes)\n\n\
 force write of file with filedescriptor to disk.\n\
  does not force update of metadata.");
 
 static PyObject *
-posix_fdatasync(PyObject *self, PyObject *fdobj)
+pyposix_fdatasync(PyObject *self, PyObject *fdobj)
 {
-    return posix_fildes(fdobj, fdatasync);
+    return pyposix_fildes(fdobj, fdatasync);
 }
 #endif /* HAVE_FDATASYNC */
 
 
 #ifdef HAVE_CHOWN
-PyDoc_STRVAR(posix_chown__doc__,
+PyDoc_STRVAR(pyposix_chown__doc__,
 "chown(path, uid, gid)\n\n\
 Change the owner and group id of path to the numeric uid and gid.");
 
 static PyObject *
-posix_chown(PyObject *self, PyObject *args)
+pyposix_chown(PyObject *self, PyObject *args)
 {
     char *path = NULL;
     long uid, gid;
@@ -1893,7 +1893,7 @@ posix_chown(PyObject *self, PyObject *args)
     res = chown(path, (uid_t) uid, (gid_t) gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1901,13 +1901,13 @@ posix_chown(PyObject *self, PyObject *args)
 #endif /* HAVE_CHOWN */
 
 #ifdef HAVE_FCHOWN
-PyDoc_STRVAR(posix_fchown__doc__,
+PyDoc_STRVAR(pyposix_fchown__doc__,
 "fchown(fd, uid, gid)\n\n\
 Change the owner and group id of the file given by file descriptor\n\
 fd to the numeric uid and gid.");
 
 static PyObject *
-posix_fchown(PyObject *self, PyObject *args)
+pyposix_fchown(PyObject *self, PyObject *args)
 {
     int fd;
     long uid, gid;
@@ -1918,19 +1918,19 @@ posix_fchown(PyObject *self, PyObject *args)
     res = fchown(fd, (uid_t) uid, (gid_t) gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_RETURN_NONE;
 }
 #endif /* HAVE_FCHOWN */
 
 #ifdef HAVE_LCHOWN
-PyDoc_STRVAR(posix_lchown__doc__,
+PyDoc_STRVAR(pyposix_lchown__doc__,
 "lchown(path, uid, gid)\n\n\
 Change the owner and group id of path to the numeric uid and gid.\n\
 This function will not follow symbolic links.");
 
 static PyObject *
-posix_lchown(PyObject *self, PyObject *args)
+pyposix_lchown(PyObject *self, PyObject *args)
 {
     char *path = NULL;
     long uid, gid;
@@ -1943,7 +1943,7 @@ posix_lchown(PyObject *self, PyObject *args)
     res = lchown(path, (uid_t) uid, (gid_t) gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1952,14 +1952,14 @@ posix_lchown(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_GETCWD
-PyDoc_STRVAR(posix_getcwd__doc__,
+PyDoc_STRVAR(pyposix_getcwd__doc__,
 "getcwd() -> path\n\n\
 Return a string representing the current working directory.");
 
 #if (defined(__sun) && defined(__SVR4)) || defined(__OpenBSD__)
 /* Issue 9185: getcwd() returns NULL/ERANGE indefinitely. */
 static PyObject *
-posix_getcwd(PyObject *self, PyObject *noargs)
+pyposix_getcwd(PyObject *self, PyObject *noargs)
 {
     char buf[PATH_MAX+2];
     char *res;
@@ -1969,13 +1969,13 @@ posix_getcwd(PyObject *self, PyObject *noargs)
     Py_END_ALLOW_THREADS
 
     if (res == NULL)
-        return posix_error();
+        return pyposix_error();
 
     return PyString_FromString(buf);
 }
 #else
 static PyObject *
-posix_getcwd(PyObject *self, PyObject *noargs)
+pyposix_getcwd(PyObject *self, PyObject *noargs)
 {
     int bufsize_incr = 1024;
     int bufsize = 0;
@@ -2003,7 +2003,7 @@ posix_getcwd(PyObject *self, PyObject *noargs)
     Py_END_ALLOW_THREADS
 
     if (res == NULL)
-        return posix_error();
+        return pyposix_error();
 
     dynamic_return = PyString_FromString(tmpbuf);
     free(tmpbuf);
@@ -2013,12 +2013,12 @@ posix_getcwd(PyObject *self, PyObject *noargs)
 #endif /* getcwd() NULL/ERANGE workaround. */
 
 #ifdef Py_USING_UNICODE
-PyDoc_STRVAR(posix_getcwdu__doc__,
+PyDoc_STRVAR(pyposix_getcwdu__doc__,
 "getcwdu() -> path\n\n\
 Return a unicode string representing the current working directory.");
 
 static PyObject *
-posix_getcwdu(PyObject *self, PyObject *noargs)
+pyposix_getcwdu(PyObject *self, PyObject *noargs)
 {
     char buf[1026];
     char *res;
@@ -2060,7 +2060,7 @@ posix_getcwdu(PyObject *self, PyObject *noargs)
 #endif
     Py_END_ALLOW_THREADS
     if (res == NULL)
-        return posix_error();
+        return pyposix_error();
     return PyUnicode_Decode(buf, strlen(buf), Py_FileSystemDefaultEncoding,"strict");
 }
 #endif /* Py_USING_UNICODE */
@@ -2068,19 +2068,19 @@ posix_getcwdu(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_LINK
-PyDoc_STRVAR(posix_link__doc__,
+PyDoc_STRVAR(pyposix_link__doc__,
 "link(src, dst)\n\n\
 Create a hard link to a file.");
 
 static PyObject *
-posix_link(PyObject *self, PyObject *args)
+pyposix_link(PyObject *self, PyObject *args)
 {
-    return posix_2str(args, "etet:link", link);
+    return pyposix_2str(args, "etet:link", link);
 }
 #endif /* HAVE_LINK */
 
 
-PyDoc_STRVAR(posix_listdir__doc__,
+PyDoc_STRVAR(pyposix_listdir__doc__,
 "listdir(path) -> list_of_strings\n\n\
 Return a list containing the names of the entries in the directory.\n\
 \n\
@@ -2090,7 +2090,7 @@ The list is in arbitrary order.  It does not include the special\n\
 entries '.' and '..' even if they are present in the directory.");
 
 static PyObject *
-posix_listdir(PyObject *self, PyObject *args)
+pyposix_listdir(PyObject *self, PyObject *args)
 {
     /* XXX Should redo this putting the (now four) versions of opendir
        in separate files instead of having them all here... */
@@ -2286,7 +2286,7 @@ posix_listdir(PyObject *self, PyObject *args)
 
     if (rc != NO_ERROR) {
         errno = ENOENT;
-        return posix_error_with_filename(name);
+        return pyposix_error_with_filename(name);
     }
 
     if (srchcnt > 0) { /* If Directory is NOT Totally Empty, */
@@ -2336,7 +2336,7 @@ posix_listdir(PyObject *self, PyObject *args)
     dirp = opendir(name);
     Py_END_ALLOW_THREADS
     if (dirp == NULL) {
-        return posix_error_with_allocated_filename(name);
+        return pyposix_error_with_allocated_filename(name);
     }
     if ((d = PyList_New(0)) == NULL) {
         Py_BEGIN_ALLOW_THREADS
@@ -2358,7 +2358,7 @@ posix_listdir(PyObject *self, PyObject *args)
                 closedir(dirp);
                 Py_END_ALLOW_THREADS
                 Py_DECREF(d);
-                return posix_error_with_allocated_filename(name);
+                return pyposix_error_with_allocated_filename(name);
             }
         }
         if (ep->d_name[0] == '.' &&
@@ -2405,12 +2405,12 @@ posix_listdir(PyObject *self, PyObject *args)
     return d;
 
 #endif /* which OS */
-}  /* end of posix_listdir */
+}  /* end of pyposix_listdir */
 
 #ifdef MS_WINDOWS
 /* A helper function for abspath on win32 */
 static PyObject *
-posix__getfullpathname(PyObject *self, PyObject *args)
+pyposix__getfullpathname(PyObject *self, PyObject *args)
 {
     /* assume encoded strings won't more than double no of chars */
     char inbuf[MAX_PATH*2];
@@ -2459,15 +2459,15 @@ posix__getfullpathname(PyObject *self, PyObject *args)
                                 Py_FileSystemDefaultEncoding, NULL);
     }
     return PyString_FromString(outbuf);
-} /* end of posix__getfullpathname */
+} /* end of pyposix__getfullpathname */
 #endif /* MS_WINDOWS */
 
-PyDoc_STRVAR(posix_mkdir__doc__,
+PyDoc_STRVAR(pyposix_mkdir__doc__,
 "mkdir(path [, mode=0777])\n\n\
 Create a directory.");
 
 static PyObject *
-posix_mkdir(PyObject *self, PyObject *args)
+pyposix_mkdir(PyObject *self, PyObject *args)
 {
     int res;
     char *path = NULL;
@@ -2518,7 +2518,7 @@ posix_mkdir(PyObject *self, PyObject *args)
 #endif
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -2533,12 +2533,12 @@ posix_mkdir(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_NICE
-PyDoc_STRVAR(posix_nice__doc__,
+PyDoc_STRVAR(pyposix_nice__doc__,
 "nice(inc) -> new_priority\n\n\
 Decrease the priority of process by inc and return the new priority.");
 
 static PyObject *
-posix_nice(PyObject *self, PyObject *args)
+pyposix_nice(PyObject *self, PyObject *args)
 {
     int increment, value;
 
@@ -2552,7 +2552,7 @@ posix_nice(PyObject *self, PyObject *args)
 
        If we are of the nice family that returns the new priority, we
        need to clear errno before the call, and check if errno is filled
-       before calling posix_error() on a returnvalue of -1, because the
+       before calling pyposix_error() on a returnvalue of -1, because the
        -1 may be the actual new priority! */
 
     errno = 0;
@@ -2563,17 +2563,17 @@ posix_nice(PyObject *self, PyObject *args)
 #endif
     if (value == -1 && errno != 0)
         /* either nice() or getpriority() returned an error */
-        return posix_error();
+        return pyposix_error();
     return PyInt_FromLong((long) value);
 }
 #endif /* HAVE_NICE */
 
-PyDoc_STRVAR(posix_rename__doc__,
+PyDoc_STRVAR(pyposix_rename__doc__,
 "rename(old, new)\n\n\
 Rename a file or directory.");
 
 static PyObject *
-posix_rename(PyObject *self, PyObject *args)
+pyposix_rename(PyObject *self, PyObject *args)
 {
 #ifdef MS_WINDOWS
     PyObject *o1, *o2;
@@ -2609,48 +2609,48 @@ error:
     Py_INCREF(Py_None);
     return Py_None;
 #else
-    return posix_2str(args, "etet:rename", rename);
+    return pyposix_2str(args, "etet:rename", rename);
 #endif
 }
 
 
-PyDoc_STRVAR(posix_rmdir__doc__,
+PyDoc_STRVAR(pyposix_rmdir__doc__,
 "rmdir(path)\n\n\
 Remove a directory.");
 
 static PyObject *
-posix_rmdir(PyObject *self, PyObject *args)
+pyposix_rmdir(PyObject *self, PyObject *args)
 {
 #ifdef MS_WINDOWS
     return win32_1str(args, "rmdir", "s:rmdir", RemoveDirectoryA, "U:rmdir", RemoveDirectoryW);
 #else
-    return posix_1str(args, "et:rmdir", rmdir);
+    return pyposix_1str(args, "et:rmdir", rmdir);
 #endif
 }
 
 
-PyDoc_STRVAR(posix_stat__doc__,
+PyDoc_STRVAR(pyposix_stat__doc__,
 "stat(path) -> stat result\n\n\
 Perform a stat system call on the given path.");
 
 static PyObject *
-posix_stat(PyObject *self, PyObject *args)
+pyposix_stat(PyObject *self, PyObject *args)
 {
 #ifdef MS_WINDOWS
-    return posix_do_stat(self, args, "et:stat", STAT, "U:stat", win32_wstat);
+    return pyposix_do_stat(self, args, "et:stat", STAT, "U:stat", win32_wstat);
 #else
-    return posix_do_stat(self, args, "et:stat", STAT, NULL, NULL);
+    return pyposix_do_stat(self, args, "et:stat", STAT, NULL, NULL);
 #endif
 }
 
 
 #ifdef HAVE_SYSTEM
-PyDoc_STRVAR(posix_system__doc__,
+PyDoc_STRVAR(pyposix_system__doc__,
 "system(command) -> exit_status\n\n\
 Execute the command (a string) in a subshell.");
 
 static PyObject *
-posix_system(PyObject *self, PyObject *args)
+pyposix_system(PyObject *self, PyObject *args)
 {
     char *command;
     long sts;
@@ -2664,49 +2664,49 @@ posix_system(PyObject *self, PyObject *args)
 #endif
 
 
-PyDoc_STRVAR(posix_umask__doc__,
+PyDoc_STRVAR(pyposix_umask__doc__,
 "umask(new_mask) -> old_mask\n\n\
 Set the current numeric umask and return the previous umask.");
 
 static PyObject *
-posix_umask(PyObject *self, PyObject *args)
+pyposix_umask(PyObject *self, PyObject *args)
 {
     int i;
     if (!PyArg_ParseTuple(args, "i:umask", &i))
         return NULL;
     i = (int)umask(i);
     if (i < 0)
-        return posix_error();
+        return pyposix_error();
     return PyInt_FromLong((long)i);
 }
 
 
-PyDoc_STRVAR(posix_unlink__doc__,
+PyDoc_STRVAR(pyposix_unlink__doc__,
 "unlink(path)\n\n\
 Remove a file (same as remove(path)).");
 
-PyDoc_STRVAR(posix_remove__doc__,
+PyDoc_STRVAR(pyposix_remove__doc__,
 "remove(path)\n\n\
 Remove a file (same as unlink(path)).");
 
 static PyObject *
-posix_unlink(PyObject *self, PyObject *args)
+pyposix_unlink(PyObject *self, PyObject *args)
 {
 #ifdef MS_WINDOWS
     return win32_1str(args, "remove", "s:remove", DeleteFileA, "U:remove", DeleteFileW);
 #else
-    return posix_1str(args, "et:remove", unlink);
+    return pyposix_1str(args, "et:remove", unlink);
 #endif
 }
 
 
 #ifdef HAVE_UNAME
-PyDoc_STRVAR(posix_uname__doc__,
+PyDoc_STRVAR(pyposix_uname__doc__,
 "uname() -> (sysname, nodename, release, version, machine)\n\n\
 Return a tuple identifying the current operating system.");
 
 static PyObject *
-posix_uname(PyObject *self, PyObject *noargs)
+pyposix_uname(PyObject *self, PyObject *noargs)
 {
     struct utsname u;
     int res;
@@ -2715,7 +2715,7 @@ posix_uname(PyObject *self, PyObject *noargs)
     res = uname(&u);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     return Py_BuildValue("(sssss)",
                          u.sysname,
                          u.nodename,
@@ -2762,14 +2762,14 @@ extract_time(PyObject *t, time_t* sec, long* usec)
     return 0;
 }
 
-PyDoc_STRVAR(posix_utime__doc__,
+PyDoc_STRVAR(pyposix_utime__doc__,
 "utime(path, (atime, mtime))\n\
 utime(path, None)\n\n\
 Set the access and modified time of the file to the given values.  If the\n\
 second form is used, set the access and modified times to the current time.");
 
 static PyObject *
-posix_utime(PyObject *self, PyObject *args)
+pyposix_utime(PyObject *self, PyObject *args)
 {
 #ifdef MS_WINDOWS
     PyObject *arg;
@@ -2917,7 +2917,7 @@ done:
 #endif /* HAVE_UTIMES */
     }
     if (res < 0) {
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
     }
     PyMem_Free(path);
     Py_INCREF(Py_None);
@@ -2931,12 +2931,12 @@ done:
 
 /* Process operations */
 
-PyDoc_STRVAR(posix__exit__doc__,
+PyDoc_STRVAR(pyposix__exit__doc__,
 "_exit(status)\n\n\
 Exit to the system with specified status, without normal exit processing.");
 
 static PyObject *
-posix__exit(PyObject *self, PyObject *args)
+pyposix__exit(PyObject *self, PyObject *args)
 {
     int sts;
     if (!PyArg_ParseTuple(args, "i:_exit", &sts))
@@ -2958,7 +2958,7 @@ free_string_array(char **array, Py_ssize_t count)
 
 
 #ifdef HAVE_EXECV
-PyDoc_STRVAR(posix_execv__doc__,
+PyDoc_STRVAR(pyposix_execv__doc__,
 "execv(path, args)\n\n\
 Execute an executable path with arguments, replacing current process.\n\
 \n\
@@ -2966,7 +2966,7 @@ Execute an executable path with arguments, replacing current process.\n\
     args: tuple or list of strings");
 
 static PyObject *
-posix_execv(PyObject *self, PyObject *args)
+pyposix_execv(PyObject *self, PyObject *args)
 {
     char *path;
     PyObject *argv;
@@ -3025,11 +3025,11 @@ posix_execv(PyObject *self, PyObject *args)
 
     free_string_array(argvlist, argc);
     PyMem_Free(path);
-    return posix_error();
+    return pyposix_error();
 }
 
 
-PyDoc_STRVAR(posix_execve__doc__,
+PyDoc_STRVAR(pyposix_execve__doc__,
 "execve(path, args, env)\n\n\
 Execute a path with arguments and environment, replacing current process.\n\
 \n\
@@ -3038,7 +3038,7 @@ Execute a path with arguments and environment, replacing current process.\n\
     env: dictionary of strings mapping to strings");
 
 static PyObject *
-posix_execve(PyObject *self, PyObject *args)
+pyposix_execve(PyObject *self, PyObject *args)
 {
     char *path;
     PyObject *argv, *env;
@@ -3156,7 +3156,7 @@ posix_execve(PyObject *self, PyObject *args)
 
     /* If we get here it's definitely an error */
 
-    (void) posix_error();
+    (void) pyposix_error();
 
   fail_2:
     while (--envc >= 0)
@@ -3174,7 +3174,7 @@ posix_execve(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_SPAWNV
-PyDoc_STRVAR(posix_spawnv__doc__,
+PyDoc_STRVAR(pyposix_spawnv__doc__,
 "spawnv(mode, path, args)\n\n\
 Execute the program 'path' in a new process.\n\
 \n\
@@ -3183,7 +3183,7 @@ Execute the program 'path' in a new process.\n\
     args: tuple or list of strings");
 
 static PyObject *
-posix_spawnv(PyObject *self, PyObject *args)
+pyposix_spawnv(PyObject *self, PyObject *args)
 {
     char *path;
     PyObject *argv;
@@ -3251,7 +3251,7 @@ posix_spawnv(PyObject *self, PyObject *args)
     PyMem_Free(path);
 
     if (spawnval == -1)
-        return posix_error();
+        return pyposix_error();
     else
 #if SIZEOF_LONG == SIZEOF_VOID_P
         return Py_BuildValue("l", (long) spawnval);
@@ -3261,7 +3261,7 @@ posix_spawnv(PyObject *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(posix_spawnve__doc__,
+PyDoc_STRVAR(pyposix_spawnve__doc__,
 "spawnve(mode, path, args, env)\n\n\
 Execute the program 'path' in a new process.\n\
 \n\
@@ -3271,7 +3271,7 @@ Execute the program 'path' in a new process.\n\
     env: dictionary of strings mapping to strings");
 
 static PyObject *
-posix_spawnve(PyObject *self, PyObject *args)
+pyposix_spawnve(PyObject *self, PyObject *args)
 {
     char *path;
     PyObject *argv, *env;
@@ -3393,7 +3393,7 @@ posix_spawnve(PyObject *self, PyObject *args)
 #endif
 
     if (spawnval == -1)
-        (void) posix_error();
+        (void) pyposix_error();
     else
 #if SIZEOF_LONG == SIZEOF_VOID_P
         res = Py_BuildValue("l", (long) spawnval);
@@ -3416,7 +3416,7 @@ posix_spawnve(PyObject *self, PyObject *args)
 
 /* OS/2 supports spawnvp & spawnvpe natively */
 #if defined(PYOS_OS2)
-PyDoc_STRVAR(posix_spawnvp__doc__,
+PyDoc_STRVAR(pyposix_spawnvp__doc__,
 "spawnvp(mode, file, args)\n\n\
 Execute the program 'file' in a new process, using the environment\n\
 search path to find the file.\n\
@@ -3426,7 +3426,7 @@ search path to find the file.\n\
     args: tuple or list of strings");
 
 static PyObject *
-posix_spawnvp(PyObject *self, PyObject *args)
+pyposix_spawnvp(PyObject *self, PyObject *args)
 {
     char *path;
     PyObject *argv;
@@ -3488,13 +3488,13 @@ posix_spawnvp(PyObject *self, PyObject *args)
     PyMem_Free(path);
 
     if (spawnval == -1)
-        return posix_error();
+        return pyposix_error();
     else
         return Py_BuildValue("l", (long) spawnval);
 }
 
 
-PyDoc_STRVAR(posix_spawnvpe__doc__,
+PyDoc_STRVAR(pyposix_spawnvpe__doc__,
 "spawnvpe(mode, file, args, env)\n\n\
 Execute the program 'file' in a new process, using the environment\n\
 search path to find the file.\n\
@@ -3505,7 +3505,7 @@ search path to find the file.\n\
     env: dictionary of strings mapping to strings");
 
 static PyObject *
-posix_spawnvpe(PyObject *self, PyObject *args)
+pyposix_spawnvpe(PyObject *self, PyObject *args)
 {
     char *path;
     PyObject *argv, *env;
@@ -3621,7 +3621,7 @@ posix_spawnvpe(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (spawnval == -1)
-        (void) posix_error();
+        (void) pyposix_error();
     else
         res = Py_BuildValue("l", (long) spawnval);
 
@@ -3642,14 +3642,14 @@ posix_spawnvpe(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_FORK1
-PyDoc_STRVAR(posix_fork1__doc__,
+PyDoc_STRVAR(pyposix_fork1__doc__,
 "fork1() -> pid\n\n\
 Fork a child process with a single multiplexed (i.e., not bound) thread.\n\
 \n\
 Return 0 to child process and PID of child to parent process.");
 
 static PyObject *
-posix_fork1(PyObject *self, PyObject *noargs)
+pyposix_fork1(PyObject *self, PyObject *noargs)
 {
     pid_t pid;
     int result = 0;
@@ -3663,7 +3663,7 @@ posix_fork1(PyObject *self, PyObject *noargs)
         result = _PyImport_ReleaseLock();
     }
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
     if (result < 0) {
         /* Don't clobber the OSError if the fork failed. */
         PyErr_SetString(PyExc_RuntimeError,
@@ -3676,13 +3676,13 @@ posix_fork1(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_FORK
-PyDoc_STRVAR(posix_fork__doc__,
+PyDoc_STRVAR(pyposix_fork__doc__,
 "fork() -> pid\n\n\
 Fork a child process.\n\
 Return 0 to child process and PID of child to parent process.");
 
 static PyObject *
-posix_fork(PyObject *self, PyObject *noargs)
+pyposix_fork(PyObject *self, PyObject *noargs)
 {
     pid_t pid;
     int result = 0;
@@ -3696,7 +3696,7 @@ posix_fork(PyObject *self, PyObject *noargs)
         result = _PyImport_ReleaseLock();
     }
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
     if (result < 0) {
         /* Don't clobber the OSError if the fork failed. */
         PyErr_SetString(PyExc_RuntimeError,
@@ -3734,12 +3734,12 @@ posix_fork(PyObject *self, PyObject *noargs)
 #endif /* defined(HAVE_OPENPTY) || defined(HAVE_FORKPTY) || defined(HAVE_DEV_PTMX */
 
 #if defined(HAVE_OPENPTY) || defined(HAVE__GETPTY) || defined(HAVE_DEV_PTMX)
-PyDoc_STRVAR(posix_openpty__doc__,
+PyDoc_STRVAR(pyposix_openpty__doc__,
 "openpty() -> (master_fd, slave_fd)\n\n\
 Open a pseudo-terminal, returning open fd's for both master and slave end.\n");
 
 static PyObject *
-posix_openpty(PyObject *self, PyObject *noargs)
+pyposix_openpty(PyObject *self, PyObject *noargs)
 {
     int master_fd, slave_fd;
 #ifndef HAVE_OPENPTY
@@ -3754,37 +3754,37 @@ posix_openpty(PyObject *self, PyObject *noargs)
 
 #ifdef HAVE_OPENPTY
     if (openpty(&master_fd, &slave_fd, NULL, NULL, NULL) != 0)
-        return posix_error();
+        return pyposix_error();
 #elif defined(HAVE__GETPTY)
     slave_name = _getpty(&master_fd, O_RDWR, 0666, 0);
     if (slave_name == NULL)
-        return posix_error();
+        return pyposix_error();
 
     slave_fd = open(slave_name, O_RDWR);
     if (slave_fd < 0)
-        return posix_error();
+        return pyposix_error();
 #else
     master_fd = open(DEV_PTY_FILE, O_RDWR | O_NOCTTY); /* open master */
     if (master_fd < 0)
-        return posix_error();
+        return pyposix_error();
     sig_saved = PyOS_setsig(SIGCHLD, SIG_DFL);
     /* change permission of slave */
     if (grantpt(master_fd) < 0) {
         PyOS_setsig(SIGCHLD, sig_saved);
-        return posix_error();
+        return pyposix_error();
     }
     /* unlock slave */
     if (unlockpt(master_fd) < 0) {
         PyOS_setsig(SIGCHLD, sig_saved);
-        return posix_error();
+        return pyposix_error();
     }
     PyOS_setsig(SIGCHLD, sig_saved);
     slave_name = ptsname(master_fd); /* get name of slave */
     if (slave_name == NULL)
-        return posix_error();
+        return pyposix_error();
     slave_fd = open(slave_name, O_RDWR | O_NOCTTY); /* open slave */
     if (slave_fd < 0)
-        return posix_error();
+        return pyposix_error();
 #if !defined(__CYGWIN__) && !defined(HAVE_DEV_PTC)
     ioctl(slave_fd, I_PUSH, "ptem"); /* push ptem */
     ioctl(slave_fd, I_PUSH, "ldterm"); /* push ldterm */
@@ -3800,14 +3800,14 @@ posix_openpty(PyObject *self, PyObject *noargs)
 #endif /* defined(HAVE_OPENPTY) || defined(HAVE__GETPTY) || defined(HAVE_DEV_PTMX) */
 
 #ifdef HAVE_FORKPTY
-PyDoc_STRVAR(posix_forkpty__doc__,
+PyDoc_STRVAR(pyposix_forkpty__doc__,
 "forkpty() -> (pid, master_fd)\n\n\
 Fork a new process with a new pseudo-terminal as controlling tty.\n\n\
 Like fork(), return 0 as pid to child process, and PID of child to parent.\n\
 To both, return fd of newly opened pseudo-terminal.\n");
 
 static PyObject *
-posix_forkpty(PyObject *self, PyObject *noargs)
+pyposix_forkpty(PyObject *self, PyObject *noargs)
 {
     int master_fd = -1, result = 0;
     pid_t pid;
@@ -3822,7 +3822,7 @@ posix_forkpty(PyObject *self, PyObject *noargs)
         result = _PyImport_ReleaseLock();
     }
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
     if (result < 0) {
         /* Don't clobber the OSError if the fork failed. */
         PyErr_SetString(PyExc_RuntimeError,
@@ -3834,12 +3834,12 @@ posix_forkpty(PyObject *self, PyObject *noargs)
 #endif
 
 #ifdef HAVE_GETEGID
-PyDoc_STRVAR(posix_getegid__doc__,
+PyDoc_STRVAR(pyposix_getegid__doc__,
 "getegid() -> egid\n\n\
 Return the current process's effective group id.");
 
 static PyObject *
-posix_getegid(PyObject *self, PyObject *noargs)
+pyposix_getegid(PyObject *self, PyObject *noargs)
 {
     return PyInt_FromLong((long)getegid());
 }
@@ -3847,12 +3847,12 @@ posix_getegid(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_GETEUID
-PyDoc_STRVAR(posix_geteuid__doc__,
+PyDoc_STRVAR(pyposix_geteuid__doc__,
 "geteuid() -> euid\n\n\
 Return the current process's effective user id.");
 
 static PyObject *
-posix_geteuid(PyObject *self, PyObject *noargs)
+pyposix_geteuid(PyObject *self, PyObject *noargs)
 {
     return PyInt_FromLong((long)geteuid());
 }
@@ -3860,36 +3860,36 @@ posix_geteuid(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_GETGID
-PyDoc_STRVAR(posix_getgid__doc__,
+PyDoc_STRVAR(pyposix_getgid__doc__,
 "getgid() -> gid\n\n\
 Return the current process's group id.");
 
 static PyObject *
-posix_getgid(PyObject *self, PyObject *noargs)
+pyposix_getgid(PyObject *self, PyObject *noargs)
 {
     return PyInt_FromLong((long)getgid());
 }
 #endif
 
 
-PyDoc_STRVAR(posix_getpid__doc__,
+PyDoc_STRVAR(pyposix_getpid__doc__,
 "getpid() -> pid\n\n\
 Return the current process id");
 
 static PyObject *
-posix_getpid(PyObject *self, PyObject *noargs)
+pyposix_getpid(PyObject *self, PyObject *noargs)
 {
     return PyLong_FromPid(getpid());
 }
 
 
 #ifdef HAVE_GETGROUPS
-PyDoc_STRVAR(posix_getgroups__doc__,
+PyDoc_STRVAR(pyposix_getgroups__doc__,
 "getgroups() -> list of group IDs\n\n\
 Return list of supplemental group IDs for the process.");
 
 static PyObject *
-posix_getgroups(PyObject *self, PyObject *noargs)
+pyposix_getgroups(PyObject *self, PyObject *noargs)
 {
     PyObject *result = NULL;
 
@@ -3917,7 +3917,7 @@ posix_getgroups(PyObject *self, PyObject *noargs)
         if (errno == EINVAL) {
             n = getgroups(0, NULL);
             if (n == -1) {
-                return posix_error();
+                return pyposix_error();
             }
             if (n == 0) {
                 /* Avoid malloc(0) */
@@ -3926,16 +3926,16 @@ posix_getgroups(PyObject *self, PyObject *noargs)
                 alt_grouplist = PyMem_Malloc(n * sizeof(gid_t));
                 if (alt_grouplist == NULL) {
                     errno = EINVAL;
-                    return posix_error();
+                    return pyposix_error();
                 }
                 n = getgroups(n, alt_grouplist);
                 if (n == -1) {
                     PyMem_Free(alt_grouplist);
-                    return posix_error();
+                    return pyposix_error();
                 }
             }
         } else {
-            return posix_error();
+            return pyposix_error();
         }
     }
     result = PyList_New(n);
@@ -3961,14 +3961,14 @@ posix_getgroups(PyObject *self, PyObject *noargs)
 #endif
 
 #ifdef HAVE_INITGROUPS
-PyDoc_STRVAR(posix_initgroups__doc__,
+PyDoc_STRVAR(pyposix_initgroups__doc__,
 "initgroups(username, gid) -> None\n\n\
 Call the system initgroups() to initialize the group access list with all of\n\
 the groups of which the specified username is a member, plus the specified\n\
 group id.");
 
 static PyObject *
-posix_initgroups(PyObject *self, PyObject *args)
+pyposix_initgroups(PyObject *self, PyObject *args)
 {
     char *username;
     long gid;
@@ -3985,31 +3985,31 @@ posix_initgroups(PyObject *self, PyObject *args)
 #endif
 
 #ifdef HAVE_GETPGID
-PyDoc_STRVAR(posix_getpgid__doc__,
+PyDoc_STRVAR(pyposix_getpgid__doc__,
 "getpgid(pid) -> pgid\n\n\
 Call the system call getpgid().");
 
 static PyObject *
-posix_getpgid(PyObject *self, PyObject *args)
+pyposix_getpgid(PyObject *self, PyObject *args)
 {
     pid_t pid, pgid;
     if (!PyArg_ParseTuple(args, PARSE_PID ":getpgid", &pid))
         return NULL;
     pgid = getpgid(pid);
     if (pgid < 0)
-        return posix_error();
+        return pyposix_error();
     return PyLong_FromPid(pgid);
 }
 #endif /* HAVE_GETPGID */
 
 
 #ifdef HAVE_GETPGRP
-PyDoc_STRVAR(posix_getpgrp__doc__,
+PyDoc_STRVAR(pyposix_getpgrp__doc__,
 "getpgrp() -> pgrp\n\n\
 Return the current process group id.");
 
 static PyObject *
-posix_getpgrp(PyObject *self, PyObject *noargs)
+pyposix_getpgrp(PyObject *self, PyObject *noargs)
 {
 #ifdef GETPGRP_HAVE_ARG
     return PyLong_FromPid(getpgrp(0));
@@ -4021,19 +4021,19 @@ posix_getpgrp(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_SETPGRP
-PyDoc_STRVAR(posix_setpgrp__doc__,
+PyDoc_STRVAR(pyposix_setpgrp__doc__,
 "setpgrp()\n\n\
 Make this process the process group leader.");
 
 static PyObject *
-posix_setpgrp(PyObject *self, PyObject *noargs)
+pyposix_setpgrp(PyObject *self, PyObject *noargs)
 {
 #ifdef SETPGRP_HAVE_ARG
     if (setpgrp(0, 0) < 0)
 #else /* SETPGRP_HAVE_ARG */
     if (setpgrp() < 0)
 #endif /* SETPGRP_HAVE_ARG */
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -4041,12 +4041,12 @@ posix_setpgrp(PyObject *self, PyObject *noargs)
 #endif /* HAVE_SETPGRP */
 
 #ifdef HAVE_GETPPID
-PyDoc_STRVAR(posix_getppid__doc__,
+PyDoc_STRVAR(pyposix_getppid__doc__,
 "getppid() -> ppid\n\n\
 Return the parent's process id.");
 
 static PyObject *
-posix_getppid(PyObject *self, PyObject *noargs)
+pyposix_getppid(PyObject *self, PyObject *noargs)
 {
     return PyLong_FromPid(getppid());
 }
@@ -4054,12 +4054,12 @@ posix_getppid(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_GETLOGIN
-PyDoc_STRVAR(posix_getlogin__doc__,
+PyDoc_STRVAR(pyposix_getlogin__doc__,
 "getlogin() -> string\n\n\
 Return the actual login name.");
 
 static PyObject *
-posix_getlogin(PyObject *self, PyObject *noargs)
+pyposix_getlogin(PyObject *self, PyObject *noargs)
 {
     PyObject *result = NULL;
     char *name;
@@ -4069,7 +4069,7 @@ posix_getlogin(PyObject *self, PyObject *noargs)
     name = getlogin();
     if (name == NULL) {
         if (errno)
-        posix_error();
+        pyposix_error();
         else
         PyErr_SetString(PyExc_OSError,
                         "unable to determine login name");
@@ -4083,12 +4083,12 @@ posix_getlogin(PyObject *self, PyObject *noargs)
 #endif
 
 #ifdef HAVE_GETUID
-PyDoc_STRVAR(posix_getuid__doc__,
+PyDoc_STRVAR(pyposix_getuid__doc__,
 "getuid() -> uid\n\n\
 Return the current process's user id.");
 
 static PyObject *
-posix_getuid(PyObject *self, PyObject *noargs)
+pyposix_getuid(PyObject *self, PyObject *noargs)
 {
     return PyInt_FromLong((long)getuid());
 }
@@ -4096,12 +4096,12 @@ posix_getuid(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_KILL
-PyDoc_STRVAR(posix_kill__doc__,
+PyDoc_STRVAR(pyposix_kill__doc__,
 "kill(pid, sig)\n\n\
 Kill a process with a signal.");
 
 static PyObject *
-posix_kill(PyObject *self, PyObject *args)
+pyposix_kill(PyObject *self, PyObject *args)
 {
     pid_t pid;
     int sig;
@@ -4122,7 +4122,7 @@ posix_kill(PyObject *self, PyObject *args)
         return NULL; /* Unrecognized Signal Requested */
 #else
     if (kill(pid, sig) == -1)
-        return posix_error();
+        return pyposix_error();
 #endif
     Py_INCREF(Py_None);
     return Py_None;
@@ -4130,12 +4130,12 @@ posix_kill(PyObject *self, PyObject *args)
 #endif
 
 #ifdef HAVE_KILLPG
-PyDoc_STRVAR(posix_killpg__doc__,
+PyDoc_STRVAR(pyposix_killpg__doc__,
 "killpg(pgid, sig)\n\n\
 Kill a process group with a signal.");
 
 static PyObject *
-posix_killpg(PyObject *self, PyObject *args)
+pyposix_killpg(PyObject *self, PyObject *args)
 {
     int sig;
     pid_t pgid;
@@ -4146,7 +4146,7 @@ posix_killpg(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, PARSE_PID "i:killpg", &pgid, &sig))
         return NULL;
     if (killpg(pgid, sig) == -1)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -4198,11 +4198,11 @@ win32_kill(PyObject *self, PyObject *args)
     return result;
 }
 
-PyDoc_STRVAR(posix__isdir__doc__,
+PyDoc_STRVAR(pyposix__isdir__doc__,
 "Return true if the pathname refers to an existing directory.");
 
 static PyObject *
-posix__isdir(PyObject *self, PyObject *args)
+pyposix__isdir(PyObject *self, PyObject *args)
 {
     PyObject *opath;
     char *path;
@@ -4243,18 +4243,18 @@ check:
 #include <sys/lock.h>
 #endif
 
-PyDoc_STRVAR(posix_plock__doc__,
+PyDoc_STRVAR(pyposix_plock__doc__,
 "plock(op)\n\n\
 Lock program segments into memory.");
 
 static PyObject *
-posix_plock(PyObject *self, PyObject *args)
+pyposix_plock(PyObject *self, PyObject *args)
 {
     int op;
     if (!PyArg_ParseTuple(args, "i:plock", &op))
         return NULL;
     if (plock(op) == -1)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -4262,7 +4262,7 @@ posix_plock(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_POPEN
-PyDoc_STRVAR(posix_popen__doc__,
+PyDoc_STRVAR(pyposix_popen__doc__,
 "popen(command [, mode='r' [, bufsize]]) -> pipe\n\n\
 Open a pipe to/from a command returning a file object.");
 
@@ -4353,7 +4353,7 @@ popen(const char *command, const char *mode, int pipesize, int *err)
 }
 
 static PyObject *
-posix_popen(PyObject *self, PyObject *args)
+pyposix_popen(PyObject *self, PyObject *args)
 {
     char *name;
     char *mode = "r";
@@ -4378,7 +4378,7 @@ posix_popen(PyObject *self, PyObject *args)
 
 /* standard posix version of popen() support */
 static PyObject *
-posix_popen(PyObject *self, PyObject *args)
+pyposix_popen(PyObject *self, PyObject *args)
 {
     char *name;
     char *mode = "r";
@@ -4391,7 +4391,7 @@ posix_popen(PyObject *self, PyObject *args)
     fp = popen(name, mode);
     Py_END_ALLOW_THREADS
     if (fp == NULL)
-        return posix_error();
+        return pyposix_error();
     f = PyFile_FromFile(fp, name, mode, pclose);
     if (f != NULL)
         PyFile_SetBufSize(f, bufsize);
@@ -4560,7 +4560,7 @@ _PyPopen(char *cmdstring, int mode, int n, int bufsize)
         if ((shell = getenv("COMSPEC")) == NULL)
         {
             errno = ENOENT;
-            return posix_error();
+            return pyposix_error();
         }
 
     sh_name = _getname(shell);
@@ -4587,7 +4587,7 @@ _PyPopen(char *cmdstring, int mode, int n, int bufsize)
             close(stdio[i].handle);
         }
         errno = saved_err;
-        return posix_error();
+        return pyposix_error();
     }
 
     /* create pipe ends */
@@ -4606,7 +4606,7 @@ _PyPopen(char *cmdstring, int mode, int n, int bufsize)
             close(p_fd[i].rd);
         }
         errno = EPIPE;
-        return posix_error();
+        return pyposix_error();
     }
 
     /* change the actual standard IO streams over temporarily,
@@ -4722,7 +4722,7 @@ _PyPopen(char *cmdstring, int mode, int n, int bufsize)
             close(p_fd[i].wr);
         }
         errno = EPIPE;
-        return posix_error_with_filename(cmdstring);
+        return pyposix_error_with_filename(cmdstring);
     }
 
     /* build tuple of file objects to return */
@@ -4989,7 +4989,7 @@ static PyObject *_PyPopenProcs = NULL;
  */
 
 static PyObject *
-posix_popen(PyObject *self, PyObject *args)
+pyposix_popen(PyObject *self, PyObject *args)
 {
     PyObject *f;
     int tm = 0;
@@ -5699,7 +5699,7 @@ static int _PyPclose(FILE *file)
 
 #else /* which OS? */
 static PyObject *
-posix_popen(PyObject *self, PyObject *args)
+pyposix_popen(PyObject *self, PyObject *args)
 {
     char *name;
     char *mode = "r";
@@ -5717,7 +5717,7 @@ posix_popen(PyObject *self, PyObject *args)
     fp = popen(name, mode);
     Py_END_ALLOW_THREADS
     if (fp == NULL)
-        return posix_error();
+        return pyposix_error();
     f = PyFile_FromFile(fp, name, mode, pclose);
     if (f != NULL)
         PyFile_SetBufSize(f, bufsize);
@@ -5729,12 +5729,12 @@ posix_popen(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_SETUID
-PyDoc_STRVAR(posix_setuid__doc__,
+PyDoc_STRVAR(pyposix_setuid__doc__,
 "setuid(uid)\n\n\
 Set the current process's user id.");
 
 static PyObject *
-posix_setuid(PyObject *self, PyObject *args)
+pyposix_setuid(PyObject *self, PyObject *args)
 {
     long uid_arg;
     uid_t uid;
@@ -5746,7 +5746,7 @@ posix_setuid(PyObject *self, PyObject *args)
         return NULL;
     }
     if (setuid(uid) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -5754,12 +5754,12 @@ posix_setuid(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_SETEUID
-PyDoc_STRVAR(posix_seteuid__doc__,
+PyDoc_STRVAR(pyposix_seteuid__doc__,
 "seteuid(uid)\n\n\
 Set the current process's effective user id.");
 
 static PyObject *
-posix_seteuid (PyObject *self, PyObject *args)
+pyposix_seteuid (PyObject *self, PyObject *args)
 {
     long euid_arg;
     uid_t euid;
@@ -5771,7 +5771,7 @@ posix_seteuid (PyObject *self, PyObject *args)
         return NULL;
     }
     if (seteuid(euid) < 0) {
-        return posix_error();
+        return pyposix_error();
     } else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -5780,12 +5780,12 @@ posix_seteuid (PyObject *self, PyObject *args)
 #endif /* HAVE_SETEUID */
 
 #ifdef HAVE_SETEGID
-PyDoc_STRVAR(posix_setegid__doc__,
+PyDoc_STRVAR(pyposix_setegid__doc__,
 "setegid(gid)\n\n\
 Set the current process's effective group id.");
 
 static PyObject *
-posix_setegid (PyObject *self, PyObject *args)
+pyposix_setegid (PyObject *self, PyObject *args)
 {
     long egid_arg;
     gid_t egid;
@@ -5797,7 +5797,7 @@ posix_setegid (PyObject *self, PyObject *args)
         return NULL;
     }
     if (setegid(egid) < 0) {
-        return posix_error();
+        return pyposix_error();
     } else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -5806,12 +5806,12 @@ posix_setegid (PyObject *self, PyObject *args)
 #endif /* HAVE_SETEGID */
 
 #ifdef HAVE_SETREUID
-PyDoc_STRVAR(posix_setreuid__doc__,
+PyDoc_STRVAR(pyposix_setreuid__doc__,
 "setreuid(ruid, euid)\n\n\
 Set the current process's real and effective user ids.");
 
 static PyObject *
-posix_setreuid (PyObject *self, PyObject *args)
+pyposix_setreuid (PyObject *self, PyObject *args)
 {
     long ruid_arg, euid_arg;
     uid_t ruid, euid;
@@ -5831,7 +5831,7 @@ posix_setreuid (PyObject *self, PyObject *args)
         return NULL;
     }
     if (setreuid(ruid, euid) < 0) {
-        return posix_error();
+        return pyposix_error();
     } else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -5840,12 +5840,12 @@ posix_setreuid (PyObject *self, PyObject *args)
 #endif /* HAVE_SETREUID */
 
 #ifdef HAVE_SETREGID
-PyDoc_STRVAR(posix_setregid__doc__,
+PyDoc_STRVAR(pyposix_setregid__doc__,
 "setregid(rgid, egid)\n\n\
 Set the current process's real and effective group ids.");
 
 static PyObject *
-posix_setregid (PyObject *self, PyObject *args)
+pyposix_setregid (PyObject *self, PyObject *args)
 {
     long rgid_arg, egid_arg;
     gid_t rgid, egid;
@@ -5865,7 +5865,7 @@ posix_setregid (PyObject *self, PyObject *args)
         return NULL;
     }
     if (setregid(rgid, egid) < 0) {
-        return posix_error();
+        return pyposix_error();
     } else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -5874,12 +5874,12 @@ posix_setregid (PyObject *self, PyObject *args)
 #endif /* HAVE_SETREGID */
 
 #ifdef HAVE_SETGID
-PyDoc_STRVAR(posix_setgid__doc__,
+PyDoc_STRVAR(pyposix_setgid__doc__,
 "setgid(gid)\n\n\
 Set the current process's group id.");
 
 static PyObject *
-posix_setgid(PyObject *self, PyObject *args)
+pyposix_setgid(PyObject *self, PyObject *args)
 {
     long gid_arg;
     gid_t gid;
@@ -5891,19 +5891,19 @@ posix_setgid(PyObject *self, PyObject *args)
         return NULL;
     }
     if (setgid(gid) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 #endif /* HAVE_SETGID */
 
 #ifdef HAVE_SETGROUPS
-PyDoc_STRVAR(posix_setgroups__doc__,
+PyDoc_STRVAR(pyposix_setgroups__doc__,
 "setgroups(list)\n\n\
 Set the groups of the current process to list.");
 
 static PyObject *
-posix_setgroups(PyObject *self, PyObject *groups)
+pyposix_setgroups(PyObject *self, PyObject *groups)
 {
     int i, len;
     gid_t grouplist[MAX_GROUPS];
@@ -5959,7 +5959,7 @@ posix_setgroups(PyObject *self, PyObject *groups)
     }
 
     if (setgroups(len, grouplist) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -5973,7 +5973,7 @@ wait_helper(pid_t pid, int status, struct rusage *ru)
     static PyObject *struct_rusage;
 
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
 
     if (struct_rusage == NULL) {
         PyObject *m = PyImport_ImportModuleNoBlock("resource");
@@ -6026,12 +6026,12 @@ wait_helper(pid_t pid, int status, struct rusage *ru)
 #endif /* HAVE_WAIT3 || HAVE_WAIT4 */
 
 #ifdef HAVE_WAIT3
-PyDoc_STRVAR(posix_wait3__doc__,
+PyDoc_STRVAR(pyposix_wait3__doc__,
 "wait3(options) -> (pid, status, rusage)\n\n\
 Wait for completion of a child process.");
 
 static PyObject *
-posix_wait3(PyObject *self, PyObject *args)
+pyposix_wait3(PyObject *self, PyObject *args)
 {
     pid_t pid;
     int options;
@@ -6051,12 +6051,12 @@ posix_wait3(PyObject *self, PyObject *args)
 #endif /* HAVE_WAIT3 */
 
 #ifdef HAVE_WAIT4
-PyDoc_STRVAR(posix_wait4__doc__,
+PyDoc_STRVAR(pyposix_wait4__doc__,
 "wait4(pid, options) -> (pid, status, rusage)\n\n\
 Wait for completion of a given child process.");
 
 static PyObject *
-posix_wait4(PyObject *self, PyObject *args)
+pyposix_wait4(PyObject *self, PyObject *args)
 {
     pid_t pid;
     int options;
@@ -6076,12 +6076,12 @@ posix_wait4(PyObject *self, PyObject *args)
 #endif /* HAVE_WAIT4 */
 
 #ifdef HAVE_WAITPID
-PyDoc_STRVAR(posix_waitpid__doc__,
+PyDoc_STRVAR(pyposix_waitpid__doc__,
 "waitpid(pid, options) -> (pid, status)\n\n\
 Wait for completion of a given child process.");
 
 static PyObject *
-posix_waitpid(PyObject *self, PyObject *args)
+pyposix_waitpid(PyObject *self, PyObject *args)
 {
     pid_t pid;
     int options;
@@ -6094,7 +6094,7 @@ posix_waitpid(PyObject *self, PyObject *args)
     pid = waitpid(pid, &status, options);
     Py_END_ALLOW_THREADS
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
 
     return Py_BuildValue("Ni", PyLong_FromPid(pid), WAIT_STATUS_INT(status));
 }
@@ -6102,12 +6102,12 @@ posix_waitpid(PyObject *self, PyObject *args)
 #elif defined(HAVE_CWAIT)
 
 /* MS C has a variant of waitpid() that's usable for most purposes. */
-PyDoc_STRVAR(posix_waitpid__doc__,
+PyDoc_STRVAR(pyposix_waitpid__doc__,
 "waitpid(pid, options) -> (pid, status << 8)\n\n"
 "Wait for completion of a given process.  options is ignored on Windows.");
 
 static PyObject *
-posix_waitpid(PyObject *self, PyObject *args)
+pyposix_waitpid(PyObject *self, PyObject *args)
 {
     Py_intptr_t pid;
     int status, options;
@@ -6118,7 +6118,7 @@ posix_waitpid(PyObject *self, PyObject *args)
     pid = _cwait(&status, pid, options);
     Py_END_ALLOW_THREADS
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
 
     /* shift the status left a byte so this is more like the POSIX waitpid */
     return Py_BuildValue("Ni", PyLong_FromPid(pid), status << 8);
@@ -6126,12 +6126,12 @@ posix_waitpid(PyObject *self, PyObject *args)
 #endif /* HAVE_WAITPID || HAVE_CWAIT */
 
 #ifdef HAVE_WAIT
-PyDoc_STRVAR(posix_wait__doc__,
+PyDoc_STRVAR(pyposix_wait__doc__,
 "wait() -> (pid, status)\n\n\
 Wait for completion of a child process.");
 
 static PyObject *
-posix_wait(PyObject *self, PyObject *noargs)
+pyposix_wait(PyObject *self, PyObject *noargs)
 {
     pid_t pid;
     WAIT_TYPE status;
@@ -6141,39 +6141,39 @@ posix_wait(PyObject *self, PyObject *noargs)
     pid = wait(&status);
     Py_END_ALLOW_THREADS
     if (pid == -1)
-        return posix_error();
+        return pyposix_error();
 
     return Py_BuildValue("Ni", PyLong_FromPid(pid), WAIT_STATUS_INT(status));
 }
 #endif
 
 
-PyDoc_STRVAR(posix_lstat__doc__,
+PyDoc_STRVAR(pyposix_lstat__doc__,
 "lstat(path) -> stat result\n\n\
 Like stat(path), but do not follow symbolic links.");
 
 static PyObject *
-posix_lstat(PyObject *self, PyObject *args)
+pyposix_lstat(PyObject *self, PyObject *args)
 {
 #ifdef HAVE_LSTAT
-    return posix_do_stat(self, args, "et:lstat", lstat, NULL, NULL);
+    return pyposix_do_stat(self, args, "et:lstat", lstat, NULL, NULL);
 #else /* !HAVE_LSTAT */
 #ifdef MS_WINDOWS
-    return posix_do_stat(self, args, "et:lstat", STAT, "U:lstat", win32_wstat);
+    return pyposix_do_stat(self, args, "et:lstat", STAT, "U:lstat", win32_wstat);
 #else
-    return posix_do_stat(self, args, "et:lstat", STAT, NULL, NULL);
+    return pyposix_do_stat(self, args, "et:lstat", STAT, NULL, NULL);
 #endif
 #endif /* !HAVE_LSTAT */
 }
 
 
 #ifdef HAVE_READLINK
-PyDoc_STRVAR(posix_readlink__doc__,
+PyDoc_STRVAR(pyposix_readlink__doc__,
 "readlink(path) -> path\n\n\
 Return a string representing the path to which the symbolic link points.");
 
 static PyObject *
-posix_readlink(PyObject *self, PyObject *args)
+pyposix_readlink(PyObject *self, PyObject *args)
 {
     PyObject* v;
     char buf[MAXPATHLEN];
@@ -6203,7 +6203,7 @@ posix_readlink(PyObject *self, PyObject *args)
     n = readlink(path, buf, (int) sizeof buf);
     Py_END_ALLOW_THREADS
     if (n < 0)
-        return posix_error_with_allocated_filename(path);
+        return pyposix_error_with_allocated_filename(path);
 
     PyMem_Free(path);
     v = PyString_FromStringAndSize(buf, n);
@@ -6231,14 +6231,14 @@ posix_readlink(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_SYMLINK
-PyDoc_STRVAR(posix_symlink__doc__,
+PyDoc_STRVAR(pyposix_symlink__doc__,
 "symlink(src, dst)\n\n\
 Create a symbolic link pointing to src named dst.");
 
 static PyObject *
-posix_symlink(PyObject *self, PyObject *args)
+pyposix_symlink(PyObject *self, PyObject *args)
 {
-    return posix_2str(args, "etet:symlink", symlink);
+    return pyposix_2str(args, "etet:symlink", symlink);
 }
 #endif /* HAVE_SYMLINK */
 
@@ -6258,7 +6258,7 @@ system_uptime(void)
 }
 
 static PyObject *
-posix_times(PyObject *self, PyObject *noargs)
+pyposix_times(PyObject *self, PyObject *noargs)
 {
     /* Currently Only Uptime is Provided -- Others Later */
     return Py_BuildValue("ddddd",
@@ -6272,14 +6272,14 @@ posix_times(PyObject *self, PyObject *noargs)
 #define NEED_TICKS_PER_SECOND
 static long ticks_per_second = -1;
 static PyObject *
-posix_times(PyObject *self, PyObject *noargs)
+pyposix_times(PyObject *self, PyObject *noargs)
 {
     struct tms t;
     clock_t c;
     errno = 0;
     c = times(&t);
     if (c == (clock_t) -1)
-        return posix_error();
+        return pyposix_error();
     return Py_BuildValue("ddddd",
                          (double)t.tms_utime / ticks_per_second,
                          (double)t.tms_stime / ticks_per_second,
@@ -6294,7 +6294,7 @@ posix_times(PyObject *self, PyObject *noargs)
 #ifdef MS_WINDOWS
 #define HAVE_TIMES      /* so the method table will pick it up */
 static PyObject *
-posix_times(PyObject *self, PyObject *noargs)
+pyposix_times(PyObject *self, PyObject *noargs)
 {
     FILETIME create, exit, kernel, user;
     HANDLE hProc;
@@ -6318,19 +6318,19 @@ posix_times(PyObject *self, PyObject *noargs)
 #endif /* MS_WINDOWS */
 
 #ifdef HAVE_TIMES
-PyDoc_STRVAR(posix_times__doc__,
+PyDoc_STRVAR(pyposix_times__doc__,
 "times() -> (utime, stime, cutime, cstime, elapsed_time)\n\n\
 Return a tuple of floating point numbers indicating process times.");
 #endif
 
 
 #ifdef HAVE_GETSID
-PyDoc_STRVAR(posix_getsid__doc__,
+PyDoc_STRVAR(pyposix_getsid__doc__,
 "getsid(pid) -> sid\n\n\
 Call the system call getsid().");
 
 static PyObject *
-posix_getsid(PyObject *self, PyObject *args)
+pyposix_getsid(PyObject *self, PyObject *args)
 {
     pid_t pid;
     int sid;
@@ -6338,41 +6338,41 @@ posix_getsid(PyObject *self, PyObject *args)
         return NULL;
     sid = getsid(pid);
     if (sid < 0)
-        return posix_error();
+        return pyposix_error();
     return PyInt_FromLong((long)sid);
 }
 #endif /* HAVE_GETSID */
 
 
 #ifdef HAVE_SETSID
-PyDoc_STRVAR(posix_setsid__doc__,
+PyDoc_STRVAR(pyposix_setsid__doc__,
 "setsid()\n\n\
 Call the system call setsid().");
 
 static PyObject *
-posix_setsid(PyObject *self, PyObject *noargs)
+pyposix_setsid(PyObject *self, PyObject *noargs)
 {
     if (setsid() < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 #endif /* HAVE_SETSID */
 
 #ifdef HAVE_SETPGID
-PyDoc_STRVAR(posix_setpgid__doc__,
+PyDoc_STRVAR(pyposix_setpgid__doc__,
 "setpgid(pid, pgrp)\n\n\
 Call the system call setpgid().");
 
 static PyObject *
-posix_setpgid(PyObject *self, PyObject *args)
+pyposix_setpgid(PyObject *self, PyObject *args)
 {
     pid_t pid;
     int pgrp;
     if (!PyArg_ParseTuple(args, PARSE_PID "i:setpgid", &pid, &pgrp))
         return NULL;
     if (setpgid(pid, pgrp) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -6380,12 +6380,12 @@ posix_setpgid(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_TCGETPGRP
-PyDoc_STRVAR(posix_tcgetpgrp__doc__,
+PyDoc_STRVAR(pyposix_tcgetpgrp__doc__,
 "tcgetpgrp(fd) -> pgid\n\n\
 Return the process group associated with the terminal given by a fd.");
 
 static PyObject *
-posix_tcgetpgrp(PyObject *self, PyObject *args)
+pyposix_tcgetpgrp(PyObject *self, PyObject *args)
 {
     int fd;
     pid_t pgid;
@@ -6393,26 +6393,26 @@ posix_tcgetpgrp(PyObject *self, PyObject *args)
         return NULL;
     pgid = tcgetpgrp(fd);
     if (pgid < 0)
-        return posix_error();
+        return pyposix_error();
     return PyLong_FromPid(pgid);
 }
 #endif /* HAVE_TCGETPGRP */
 
 
 #ifdef HAVE_TCSETPGRP
-PyDoc_STRVAR(posix_tcsetpgrp__doc__,
+PyDoc_STRVAR(pyposix_tcsetpgrp__doc__,
 "tcsetpgrp(fd, pgid)\n\n\
 Set the process group associated with the terminal given by a fd.");
 
 static PyObject *
-posix_tcsetpgrp(PyObject *self, PyObject *args)
+pyposix_tcsetpgrp(PyObject *self, PyObject *args)
 {
     int fd;
     pid_t pgid;
     if (!PyArg_ParseTuple(args, "i" PARSE_PID ":tcsetpgrp", &fd, &pgid))
         return NULL;
     if (tcsetpgrp(fd, pgid) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -6420,12 +6420,12 @@ posix_tcsetpgrp(PyObject *self, PyObject *args)
 
 /* Functions acting on file descriptors */
 
-PyDoc_STRVAR(posix_open__doc__,
+PyDoc_STRVAR(pyposix_open__doc__,
 "open(filename, flag [, mode=0777]) -> fd\n\n\
 Open a file (for low level IO).");
 
 static PyObject *
-posix_open(PyObject *self, PyObject *args)
+pyposix_open(PyObject *self, PyObject *args)
 {
     char *file = NULL;
     int flag;
@@ -6441,7 +6441,7 @@ posix_open(PyObject *self, PyObject *args)
         fd = _wopen(PyUnicode_AS_UNICODE(po), flag, mode);
         Py_END_ALLOW_THREADS
         if (fd < 0)
-            return posix_error();
+            return pyposix_error();
         return PyInt_FromLong((long)fd);
     }
     /* Drop the argument parsing error as narrow strings
@@ -6458,40 +6458,40 @@ posix_open(PyObject *self, PyObject *args)
     fd = open(file, flag, mode);
     Py_END_ALLOW_THREADS
     if (fd < 0)
-        return posix_error_with_allocated_filename(file);
+        return pyposix_error_with_allocated_filename(file);
     PyMem_Free(file);
     return PyInt_FromLong((long)fd);
 }
 
 
-PyDoc_STRVAR(posix_close__doc__,
+PyDoc_STRVAR(pyposix_close__doc__,
 "close(fd)\n\n\
 Close a file descriptor (for low level IO).");
 
 static PyObject *
-posix_close(PyObject *self, PyObject *args)
+pyposix_close(PyObject *self, PyObject *args)
 {
     int fd, res;
     if (!PyArg_ParseTuple(args, "i:close", &fd))
         return NULL;
     if (!_PyVerify_fd(fd))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
     res = close(fd);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 
-PyDoc_STRVAR(posix_closerange__doc__,
+PyDoc_STRVAR(pyposix_closerange__doc__,
 "closerange(fd_low, fd_high)\n\n\
 Closes all file descriptors in [fd_low, fd_high), ignoring errors.");
 
 static PyObject *
-posix_closerange(PyObject *self, PyObject *args)
+pyposix_closerange(PyObject *self, PyObject *args)
 {
     int fd_from, fd_to, i;
     if (!PyArg_ParseTuple(args, "ii:closerange", &fd_from, &fd_to))
@@ -6505,55 +6505,55 @@ posix_closerange(PyObject *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(posix_dup__doc__,
+PyDoc_STRVAR(pyposix_dup__doc__,
 "dup(fd) -> fd2\n\n\
 Return a duplicate of a file descriptor.");
 
 static PyObject *
-posix_dup(PyObject *self, PyObject *args)
+pyposix_dup(PyObject *self, PyObject *args)
 {
     int fd;
     if (!PyArg_ParseTuple(args, "i:dup", &fd))
         return NULL;
     if (!_PyVerify_fd(fd))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
     fd = dup(fd);
     Py_END_ALLOW_THREADS
     if (fd < 0)
-        return posix_error();
+        return pyposix_error();
     return PyInt_FromLong((long)fd);
 }
 
 
-PyDoc_STRVAR(posix_dup2__doc__,
+PyDoc_STRVAR(pyposix_dup2__doc__,
 "dup2(old_fd, new_fd)\n\n\
 Duplicate file descriptor.");
 
 static PyObject *
-posix_dup2(PyObject *self, PyObject *args)
+pyposix_dup2(PyObject *self, PyObject *args)
 {
     int fd, fd2, res;
     if (!PyArg_ParseTuple(args, "ii:dup2", &fd, &fd2))
         return NULL;
     if (!_PyVerify_fd_dup2(fd, fd2))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
     res = dup2(fd, fd2);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 
-PyDoc_STRVAR(posix_lseek__doc__,
+PyDoc_STRVAR(pyposix_lseek__doc__,
 "lseek(fd, pos, how) -> newpos\n\n\
 Set the current position of a file descriptor.");
 
 static PyObject *
-posix_lseek(PyObject *self, PyObject *args)
+pyposix_lseek(PyObject *self, PyObject *args)
 {
     int fd, how;
 #if defined(MS_WIN64) || defined(MS_WINDOWS)
@@ -6583,7 +6583,7 @@ posix_lseek(PyObject *self, PyObject *args)
         return NULL;
 
     if (!_PyVerify_fd(fd))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
 #if defined(MS_WIN64) || defined(MS_WINDOWS)
     res = _lseeki64(fd, pos, how);
@@ -6592,7 +6592,7 @@ posix_lseek(PyObject *self, PyObject *args)
 #endif
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
 
 #if !defined(HAVE_LARGEFILE_SUPPORT)
     return PyInt_FromLong(res);
@@ -6602,12 +6602,12 @@ posix_lseek(PyObject *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(posix_read__doc__,
+PyDoc_STRVAR(pyposix_read__doc__,
 "read(fd, buffersize) -> string\n\n\
 Read a file descriptor.");
 
 static PyObject *
-posix_read(PyObject *self, PyObject *args)
+pyposix_read(PyObject *self, PyObject *args)
 {
     int fd, size, n;
     PyObject *buffer;
@@ -6615,21 +6615,21 @@ posix_read(PyObject *self, PyObject *args)
         return NULL;
     if (size < 0) {
         errno = EINVAL;
-        return posix_error();
+        return pyposix_error();
     }
     buffer = PyString_FromStringAndSize((char *)NULL, size);
     if (buffer == NULL)
         return NULL;
     if (!_PyVerify_fd(fd)) {
         Py_DECREF(buffer);
-        return posix_error();
+        return pyposix_error();
     }
     Py_BEGIN_ALLOW_THREADS
     n = read(fd, PyString_AsString(buffer), size);
     Py_END_ALLOW_THREADS
     if (n < 0) {
         Py_DECREF(buffer);
-        return posix_error();
+        return pyposix_error();
     }
     if (n != size)
         _PyString_Resize(&buffer, n);
@@ -6637,12 +6637,12 @@ posix_read(PyObject *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(posix_write__doc__,
+PyDoc_STRVAR(pyposix_write__doc__,
 "write(fd, string) -> byteswritten\n\n\
 Write a string to a file descriptor.");
 
 static PyObject *
-posix_write(PyObject *self, PyObject *args)
+pyposix_write(PyObject *self, PyObject *args)
 {
     Py_buffer pbuf;
     int fd;
@@ -6652,7 +6652,7 @@ posix_write(PyObject *self, PyObject *args)
         return NULL;
     if (!_PyVerify_fd(fd)) {
         PyBuffer_Release(&pbuf);
-        return posix_error();
+        return pyposix_error();
     }
     len = pbuf.len;
     Py_BEGIN_ALLOW_THREADS
@@ -6666,17 +6666,17 @@ posix_write(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
     PyBuffer_Release(&pbuf);
     if (size < 0)
-        return posix_error();
+        return pyposix_error();
     return PyInt_FromSsize_t(size);
 }
 
 
-PyDoc_STRVAR(posix_fstat__doc__,
+PyDoc_STRVAR(pyposix_fstat__doc__,
 "fstat(fd) -> stat result\n\n\
 Like stat(), but for an open file descriptor.");
 
 static PyObject *
-posix_fstat(PyObject *self, PyObject *args)
+pyposix_fstat(PyObject *self, PyObject *args)
 {
     int fd;
     STRUCT_STAT st;
@@ -6688,7 +6688,7 @@ posix_fstat(PyObject *self, PyObject *args)
     fsync(fd);
 #endif
     if (!_PyVerify_fd(fd))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
     res = FSTAT(fd, &st);
     Py_END_ALLOW_THREADS
@@ -6696,7 +6696,7 @@ posix_fstat(PyObject *self, PyObject *args)
 #ifdef MS_WINDOWS
         return win32_error("fstat", NULL);
 #else
-        return posix_error();
+        return pyposix_error();
 #endif
     }
 
@@ -6704,12 +6704,12 @@ posix_fstat(PyObject *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(posix_fdopen__doc__,
+PyDoc_STRVAR(pyposix_fdopen__doc__,
 "fdopen(fd [, mode='r' [, bufsize]]) -> file_object\n\n\
 Return an open file object connected to a file descriptor.");
 
 static PyObject *
-posix_fdopen(PyObject *self, PyObject *args)
+pyposix_fdopen(PyObject *self, PyObject *args)
 {
     int fd;
     char *orgmode = "r";
@@ -6732,7 +6732,7 @@ posix_fdopen(PyObject *self, PyObject *args)
         return NULL;
     }
     if (!_PyVerify_fd(fd))
-        return posix_error();
+        return pyposix_error();
     Py_BEGIN_ALLOW_THREADS
 #if !defined(MS_WINDOWS) && defined(HAVE_FCNTL_H)
     if (mode[0] == 'a') {
@@ -6754,7 +6754,7 @@ posix_fdopen(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
     PyMem_FREE(mode);
     if (fp == NULL)
-        return posix_error();
+        return pyposix_error();
     /* The dummy filename used here must be kept in sync with the value
        tested against in gzip.GzipFile.__init__() - see issue #13781. */
     f = PyFile_FromFile(fp, "<fdopen>", orgmode, fclose);
@@ -6763,13 +6763,13 @@ posix_fdopen(PyObject *self, PyObject *args)
     return f;
 }
 
-PyDoc_STRVAR(posix_isatty__doc__,
+PyDoc_STRVAR(pyposix_isatty__doc__,
 "isatty(fd) -> bool\n\n\
 Return True if the file descriptor 'fd' is an open file descriptor\n\
 connected to the slave end of a terminal.");
 
 static PyObject *
-posix_isatty(PyObject *self, PyObject *args)
+pyposix_isatty(PyObject *self, PyObject *args)
 {
     int fd;
     if (!PyArg_ParseTuple(args, "i:isatty", &fd))
@@ -6780,12 +6780,12 @@ posix_isatty(PyObject *self, PyObject *args)
 }
 
 #ifdef HAVE_PIPE
-PyDoc_STRVAR(posix_pipe__doc__,
+PyDoc_STRVAR(pyposix_pipe__doc__,
 "pipe() -> (read_end, write_end)\n\n\
 Create a pipe.");
 
 static PyObject *
-posix_pipe(PyObject *self, PyObject *noargs)
+pyposix_pipe(PyObject *self, PyObject *noargs)
 {
 #if defined(PYOS_OS2)
     HFILE read, write;
@@ -6806,7 +6806,7 @@ posix_pipe(PyObject *self, PyObject *noargs)
     res = pipe(fds);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return posix_error();
+        return pyposix_error();
     return Py_BuildValue("(ii)", fds[0], fds[1]);
 #else /* MS_WINDOWS */
     HANDLE read, write;
@@ -6827,12 +6827,12 @@ posix_pipe(PyObject *self, PyObject *noargs)
 
 
 #ifdef HAVE_MKFIFO
-PyDoc_STRVAR(posix_mkfifo__doc__,
+PyDoc_STRVAR(pyposix_mkfifo__doc__,
 "mkfifo(filename [, mode=0666])\n\n\
 Create a FIFO (a POSIX named pipe).");
 
 static PyObject *
-posix_mkfifo(PyObject *self, PyObject *args)
+pyposix_mkfifo(PyObject *self, PyObject *args)
 {
     char *filename;
     int mode = 0666;
@@ -6843,7 +6843,7 @@ posix_mkfifo(PyObject *self, PyObject *args)
     res = mkfifo(filename, mode);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -6851,7 +6851,7 @@ posix_mkfifo(PyObject *self, PyObject *args)
 
 
 #if defined(HAVE_MKNOD) && defined(HAVE_MAKEDEV)
-PyDoc_STRVAR(posix_mknod__doc__,
+PyDoc_STRVAR(pyposix_mknod__doc__,
 "mknod(filename [, mode=0600, device])\n\n\
 Create a filesystem node (file, device special file or named pipe)\n\
 named filename. mode specifies both the permissions to use and the\n\
@@ -6862,7 +6862,7 @@ os.makedev()), otherwise it is ignored.");
 
 
 static PyObject *
-posix_mknod(PyObject *self, PyObject *args)
+pyposix_mknod(PyObject *self, PyObject *args)
 {
     char *filename;
     int mode = 0600;
@@ -6874,19 +6874,19 @@ posix_mknod(PyObject *self, PyObject *args)
     res = mknod(filename, mode, device);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 #endif
 
 #ifdef HAVE_DEVICE_MACROS
-PyDoc_STRVAR(posix_major__doc__,
+PyDoc_STRVAR(pyposix_major__doc__,
 "major(device) -> major number\n\
 Extracts a device major number from a raw device number.");
 
 static PyObject *
-posix_major(PyObject *self, PyObject *args)
+pyposix_major(PyObject *self, PyObject *args)
 {
     int device;
     if (!PyArg_ParseTuple(args, "i:major", &device))
@@ -6894,12 +6894,12 @@ posix_major(PyObject *self, PyObject *args)
     return PyInt_FromLong((long)major(device));
 }
 
-PyDoc_STRVAR(posix_minor__doc__,
+PyDoc_STRVAR(pyposix_minor__doc__,
 "minor(device) -> minor number\n\
 Extracts a device minor number from a raw device number.");
 
 static PyObject *
-posix_minor(PyObject *self, PyObject *args)
+pyposix_minor(PyObject *self, PyObject *args)
 {
     int device;
     if (!PyArg_ParseTuple(args, "i:minor", &device))
@@ -6907,12 +6907,12 @@ posix_minor(PyObject *self, PyObject *args)
     return PyInt_FromLong((long)minor(device));
 }
 
-PyDoc_STRVAR(posix_makedev__doc__,
+PyDoc_STRVAR(pyposix_makedev__doc__,
 "makedev(major, minor) -> device number\n\
 Composes a raw device number from the major and minor device numbers.");
 
 static PyObject *
-posix_makedev(PyObject *self, PyObject *args)
+pyposix_makedev(PyObject *self, PyObject *args)
 {
     int major, minor;
     if (!PyArg_ParseTuple(args, "ii:makedev", &major, &minor))
@@ -6923,12 +6923,12 @@ posix_makedev(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_FTRUNCATE
-PyDoc_STRVAR(posix_ftruncate__doc__,
+PyDoc_STRVAR(pyposix_ftruncate__doc__,
 "ftruncate(fd, length)\n\n\
 Truncate a file to a specified length.");
 
 static PyObject *
-posix_ftruncate(PyObject *self, PyObject *args)
+pyposix_ftruncate(PyObject *self, PyObject *args)
 {
     int fd;
     off_t length;
@@ -6951,23 +6951,23 @@ posix_ftruncate(PyObject *self, PyObject *args)
     res = ftruncate(fd, length);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return posix_error();
+        return pyposix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }
 #endif
 
 #ifdef HAVE_PUTENV
-PyDoc_STRVAR(posix_putenv__doc__,
+PyDoc_STRVAR(pyposix_putenv__doc__,
 "putenv(key, value)\n\n\
 Change or add an environment variable.");
 
 /* Save putenv() parameters as values here, so we can collect them when they
  * get re-set with another call for the same key. */
-static PyObject *posix_putenv_garbage;
+static PyObject *pyposix_putenv_garbage;
 
 static PyObject *
-posix_putenv(PyObject *self, PyObject *args)
+pyposix_putenv(PyObject *self, PyObject *args)
 {
     char *s1, *s2;
     char *newenv;
@@ -7013,14 +7013,14 @@ posix_putenv(PyObject *self, PyObject *args)
     PyOS_snprintf(newenv, len, "%s=%s", s1, s2);
     if (putenv(newenv)) {
         Py_DECREF(newstr);
-        posix_error();
+        pyposix_error();
         return NULL;
     }
-    /* Install the first arg and newstr in posix_putenv_garbage;
+    /* Install the first arg and newstr in pyposix_putenv_garbage;
      * this will cause previous value to be collected.  This has to
      * happen after the real putenv() call because the old value
      * was still accessible until then. */
-    if (PyDict_SetItem(posix_putenv_garbage,
+    if (PyDict_SetItem(pyposix_putenv_garbage,
                        PyTuple_GET_ITEM(args, 0), newstr)) {
         /* really not much we can do; just leak */
         PyErr_Clear();
@@ -7038,12 +7038,12 @@ posix_putenv(PyObject *self, PyObject *args)
 #endif /* putenv */
 
 #ifdef HAVE_UNSETENV
-PyDoc_STRVAR(posix_unsetenv__doc__,
+PyDoc_STRVAR(pyposix_unsetenv__doc__,
 "unsetenv(key)\n\n\
 Delete an environment variable.");
 
 static PyObject *
-posix_unsetenv(PyObject *self, PyObject *args)
+pyposix_unsetenv(PyObject *self, PyObject *args)
 {
     char *s1;
 #ifndef HAVE_BROKEN_UNSETENV
@@ -7058,15 +7058,15 @@ posix_unsetenv(PyObject *self, PyObject *args)
 #else
     err = unsetenv(s1);
     if (err)
-        return posix_error();
+        return pyposix_error();
 #endif
 
-    /* Remove the key from posix_putenv_garbage;
+    /* Remove the key from pyposix_putenv_garbage;
      * this will cause it to be collected.  This has to
      * happen after the real unsetenv() call because the
      * old value was still accessible until then.
      */
-    if (PyDict_DelItem(posix_putenv_garbage,
+    if (PyDict_DelItem(pyposix_putenv_garbage,
                        PyTuple_GET_ITEM(args, 0))) {
         /* really not much we can do; just leak */
         PyErr_Clear();
@@ -7077,12 +7077,12 @@ posix_unsetenv(PyObject *self, PyObject *args)
 }
 #endif /* unsetenv */
 
-PyDoc_STRVAR(posix_strerror__doc__,
+PyDoc_STRVAR(pyposix_strerror__doc__,
 "strerror(code) -> string\n\n\
 Translate an error code to a message string.");
 
 static PyObject *
-posix_strerror(PyObject *self, PyObject *args)
+pyposix_strerror(PyObject *self, PyObject *args)
 {
     int code;
     char *message;
@@ -7101,12 +7101,12 @@ posix_strerror(PyObject *self, PyObject *args)
 #ifdef HAVE_SYS_WAIT_H
 
 #ifdef WCOREDUMP
-PyDoc_STRVAR(posix_WCOREDUMP__doc__,
+PyDoc_STRVAR(pyposix_WCOREDUMP__doc__,
 "WCOREDUMP(status) -> bool\n\n\
 Return True if the process returning 'status' was dumped to a core file.");
 
 static PyObject *
-posix_WCOREDUMP(PyObject *self, PyObject *args)
+pyposix_WCOREDUMP(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7119,13 +7119,13 @@ posix_WCOREDUMP(PyObject *self, PyObject *args)
 #endif /* WCOREDUMP */
 
 #ifdef WIFCONTINUED
-PyDoc_STRVAR(posix_WIFCONTINUED__doc__,
+PyDoc_STRVAR(pyposix_WIFCONTINUED__doc__,
 "WIFCONTINUED(status) -> bool\n\n\
 Return True if the process returning 'status' was continued from a\n\
 job control stop.");
 
 static PyObject *
-posix_WIFCONTINUED(PyObject *self, PyObject *args)
+pyposix_WIFCONTINUED(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7138,12 +7138,12 @@ posix_WIFCONTINUED(PyObject *self, PyObject *args)
 #endif /* WIFCONTINUED */
 
 #ifdef WIFSTOPPED
-PyDoc_STRVAR(posix_WIFSTOPPED__doc__,
+PyDoc_STRVAR(pyposix_WIFSTOPPED__doc__,
 "WIFSTOPPED(status) -> bool\n\n\
 Return True if the process returning 'status' was stopped.");
 
 static PyObject *
-posix_WIFSTOPPED(PyObject *self, PyObject *args)
+pyposix_WIFSTOPPED(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7156,12 +7156,12 @@ posix_WIFSTOPPED(PyObject *self, PyObject *args)
 #endif /* WIFSTOPPED */
 
 #ifdef WIFSIGNALED
-PyDoc_STRVAR(posix_WIFSIGNALED__doc__,
+PyDoc_STRVAR(pyposix_WIFSIGNALED__doc__,
 "WIFSIGNALED(status) -> bool\n\n\
 Return True if the process returning 'status' was terminated by a signal.");
 
 static PyObject *
-posix_WIFSIGNALED(PyObject *self, PyObject *args)
+pyposix_WIFSIGNALED(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7174,13 +7174,13 @@ posix_WIFSIGNALED(PyObject *self, PyObject *args)
 #endif /* WIFSIGNALED */
 
 #ifdef WIFEXITED
-PyDoc_STRVAR(posix_WIFEXITED__doc__,
+PyDoc_STRVAR(pyposix_WIFEXITED__doc__,
 "WIFEXITED(status) -> bool\n\n\
 Return true if the process returning 'status' exited using the exit()\n\
 system call.");
 
 static PyObject *
-posix_WIFEXITED(PyObject *self, PyObject *args)
+pyposix_WIFEXITED(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7193,12 +7193,12 @@ posix_WIFEXITED(PyObject *self, PyObject *args)
 #endif /* WIFEXITED */
 
 #ifdef WEXITSTATUS
-PyDoc_STRVAR(posix_WEXITSTATUS__doc__,
+PyDoc_STRVAR(pyposix_WEXITSTATUS__doc__,
 "WEXITSTATUS(status) -> integer\n\n\
 Return the process return code from 'status'.");
 
 static PyObject *
-posix_WEXITSTATUS(PyObject *self, PyObject *args)
+pyposix_WEXITSTATUS(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7211,13 +7211,13 @@ posix_WEXITSTATUS(PyObject *self, PyObject *args)
 #endif /* WEXITSTATUS */
 
 #ifdef WTERMSIG
-PyDoc_STRVAR(posix_WTERMSIG__doc__,
+PyDoc_STRVAR(pyposix_WTERMSIG__doc__,
 "WTERMSIG(status) -> integer\n\n\
 Return the signal that terminated the process that provided the 'status'\n\
 value.");
 
 static PyObject *
-posix_WTERMSIG(PyObject *self, PyObject *args)
+pyposix_WTERMSIG(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7230,13 +7230,13 @@ posix_WTERMSIG(PyObject *self, PyObject *args)
 #endif /* WTERMSIG */
 
 #ifdef WSTOPSIG
-PyDoc_STRVAR(posix_WSTOPSIG__doc__,
+PyDoc_STRVAR(pyposix_WSTOPSIG__doc__,
 "WSTOPSIG(status) -> integer\n\n\
 Return the signal that stopped the process that provided\n\
 the 'status' value.");
 
 static PyObject *
-posix_WSTOPSIG(PyObject *self, PyObject *args)
+pyposix_WSTOPSIG(PyObject *self, PyObject *args)
 {
     WAIT_TYPE status;
     WAIT_STATUS_INT(status) = 0;
@@ -7298,12 +7298,12 @@ _pystatvfs_fromstructstatvfs(struct statvfs st) {
     return v;
 }
 
-PyDoc_STRVAR(posix_fstatvfs__doc__,
+PyDoc_STRVAR(pyposix_fstatvfs__doc__,
 "fstatvfs(fd) -> statvfs result\n\n\
 Perform an fstatvfs system call on the given fd.");
 
 static PyObject *
-posix_fstatvfs(PyObject *self, PyObject *args)
+pyposix_fstatvfs(PyObject *self, PyObject *args)
 {
     int fd, res;
     struct statvfs st;
@@ -7314,7 +7314,7 @@ posix_fstatvfs(PyObject *self, PyObject *args)
     res = fstatvfs(fd, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return posix_error();
+        return pyposix_error();
 
     return _pystatvfs_fromstructstatvfs(st);
 }
@@ -7324,12 +7324,12 @@ posix_fstatvfs(PyObject *self, PyObject *args)
 #if defined(HAVE_STATVFS) && defined(HAVE_SYS_STATVFS_H)
 #include <sys/statvfs.h>
 
-PyDoc_STRVAR(posix_statvfs__doc__,
+PyDoc_STRVAR(pyposix_statvfs__doc__,
 "statvfs(path) -> statvfs result\n\n\
 Perform a statvfs system call on the given path.");
 
 static PyObject *
-posix_statvfs(PyObject *self, PyObject *args)
+pyposix_statvfs(PyObject *self, PyObject *args)
 {
     char *path;
     int res;
@@ -7340,7 +7340,7 @@ posix_statvfs(PyObject *self, PyObject *args)
     res = statvfs(path, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return posix_error_with_filename(path);
+        return pyposix_error_with_filename(path);
 
     return _pystatvfs_fromstructstatvfs(st);
 }
@@ -7348,14 +7348,14 @@ posix_statvfs(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_TEMPNAM
-PyDoc_STRVAR(posix_tempnam__doc__,
+PyDoc_STRVAR(pyposix_tempnam__doc__,
 "tempnam([dir[, prefix]]) -> string\n\n\
 Return a unique name for a temporary file.\n\
 The directory and a prefix may be specified as strings; they may be omitted\n\
 or None if not needed.");
 
 static PyObject *
-posix_tempnam(PyObject *self, PyObject *args)
+pyposix_tempnam(PyObject *self, PyObject *args)
 {
     PyObject *result = NULL;
     char *dir = NULL;
@@ -7388,12 +7388,12 @@ posix_tempnam(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_TMPFILE
-PyDoc_STRVAR(posix_tmpfile__doc__,
+PyDoc_STRVAR(pyposix_tmpfile__doc__,
 "tmpfile() -> file object\n\n\
 Create a temporary file with no directory entries.");
 
 static PyObject *
-posix_tmpfile(PyObject *self, PyObject *noargs)
+pyposix_tmpfile(PyObject *self, PyObject *noargs)
 {
     FILE *fp;
 
@@ -7403,19 +7403,19 @@ posix_tmpfile(PyObject *self, PyObject *noargs)
 
     fp = tmpfile();
     if (fp == NULL)
-        return posix_error();
+        return pyposix_error();
     return PyFile_FromFile(fp, "<tmpfile>", "w+b", fclose);
 }
 #endif
 
 
 #ifdef HAVE_TMPNAM
-PyDoc_STRVAR(posix_tmpnam__doc__,
+PyDoc_STRVAR(pyposix_tmpnam__doc__,
 "tmpnam() -> string\n\n\
 Return a unique name for a temporary file.");
 
 static PyObject *
-posix_tmpnam(PyObject *self, PyObject *noargs)
+pyposix_tmpnam(PyObject *self, PyObject *noargs)
 {
     char buffer[L_tmpnam];
     char *name;
@@ -7503,7 +7503,7 @@ conv_confname(PyObject *arg, int *valuep, struct constdef *table,
 
 
 #if defined(HAVE_FPATHCONF) || defined(HAVE_PATHCONF)
-static struct constdef  posix_constants_pathconf[] = {
+static struct constdef  pyposix_constants_pathconf[] = {
 #ifdef _PC_ABI_AIO_XFER_MAX
     {"PC_ABI_AIO_XFER_MAX",     _PC_ABI_AIO_XFER_MAX},
 #endif
@@ -7560,20 +7560,20 @@ static struct constdef  posix_constants_pathconf[] = {
 static int
 conv_path_confname(PyObject *arg, int *valuep)
 {
-    return conv_confname(arg, valuep, posix_constants_pathconf,
-                         sizeof(posix_constants_pathconf)
+    return conv_confname(arg, valuep, pyposix_constants_pathconf,
+                         sizeof(pyposix_constants_pathconf)
                            / sizeof(struct constdef));
 }
 #endif
 
 #ifdef HAVE_FPATHCONF
-PyDoc_STRVAR(posix_fpathconf__doc__,
+PyDoc_STRVAR(pyposix_fpathconf__doc__,
 "fpathconf(fd, name) -> integer\n\n\
 Return the configuration limit name for the file descriptor fd.\n\
 If there is no limit, return -1.");
 
 static PyObject *
-posix_fpathconf(PyObject *self, PyObject *args)
+pyposix_fpathconf(PyObject *self, PyObject *args)
 {
     PyObject *result = NULL;
     int name, fd;
@@ -7585,7 +7585,7 @@ posix_fpathconf(PyObject *self, PyObject *args)
         errno = 0;
         limit = fpathconf(fd, name);
         if (limit == -1 && errno != 0)
-            posix_error();
+            pyposix_error();
         else
             result = PyInt_FromLong(limit);
     }
@@ -7595,13 +7595,13 @@ posix_fpathconf(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_PATHCONF
-PyDoc_STRVAR(posix_pathconf__doc__,
+PyDoc_STRVAR(pyposix_pathconf__doc__,
 "pathconf(path, name) -> integer\n\n\
 Return the configuration limit name for the file or directory path.\n\
 If there is no limit, return -1.");
 
 static PyObject *
-posix_pathconf(PyObject *self, PyObject *args)
+pyposix_pathconf(PyObject *self, PyObject *args)
 {
     PyObject *result = NULL;
     int name;
@@ -7616,9 +7616,9 @@ posix_pathconf(PyObject *self, PyObject *args)
     if (limit == -1 && errno != 0) {
         if (errno == EINVAL)
             /* could be a path or name problem */
-            posix_error();
+            pyposix_error();
         else
-            posix_error_with_filename(path);
+            pyposix_error_with_filename(path);
     }
     else
         result = PyInt_FromLong(limit);
@@ -7628,7 +7628,7 @@ posix_pathconf(PyObject *self, PyObject *args)
 #endif
 
 #ifdef HAVE_CONFSTR
-static struct constdef posix_constants_confstr[] = {
+static struct constdef pyposix_constants_confstr[] = {
 #ifdef _CS_ARCHITECTURE
     {"CS_ARCHITECTURE", _CS_ARCHITECTURE},
 #endif
@@ -7778,17 +7778,17 @@ static struct constdef posix_constants_confstr[] = {
 static int
 conv_confstr_confname(PyObject *arg, int *valuep)
 {
-    return conv_confname(arg, valuep, posix_constants_confstr,
-                         sizeof(posix_constants_confstr)
+    return conv_confname(arg, valuep, pyposix_constants_confstr,
+                         sizeof(pyposix_constants_confstr)
                            / sizeof(struct constdef));
 }
 
-PyDoc_STRVAR(posix_confstr__doc__,
+PyDoc_STRVAR(pyposix_confstr__doc__,
 "confstr(name) -> string\n\n\
 Return a string-valued system configuration variable.");
 
 static PyObject *
-posix_confstr(PyObject *self, PyObject *args)
+pyposix_confstr(PyObject *self, PyObject *args)
 {
     PyObject *result = NULL;
     int name;
@@ -7801,7 +7801,7 @@ posix_confstr(PyObject *self, PyObject *args)
     len = confstr(name, buffer, sizeof(buffer));
     if (len == 0) {
         if (errno) {
-        posix_error();
+        pyposix_error();
         }
         else {
         result = Py_None;
@@ -7824,7 +7824,7 @@ posix_confstr(PyObject *self, PyObject *args)
 
 
 #ifdef HAVE_SYSCONF
-static struct constdef posix_constants_sysconf[] = {
+static struct constdef pyposix_constants_sysconf[] = {
 #ifdef _SC_2_CHAR_TERM
     {"SC_2_CHAR_TERM",  _SC_2_CHAR_TERM},
 #endif
@@ -8322,17 +8322,17 @@ static struct constdef posix_constants_sysconf[] = {
 static int
 conv_sysconf_confname(PyObject *arg, int *valuep)
 {
-    return conv_confname(arg, valuep, posix_constants_sysconf,
-                         sizeof(posix_constants_sysconf)
+    return conv_confname(arg, valuep, pyposix_constants_sysconf,
+                         sizeof(pyposix_constants_sysconf)
                            / sizeof(struct constdef));
 }
 
-PyDoc_STRVAR(posix_sysconf__doc__,
+PyDoc_STRVAR(pyposix_sysconf__doc__,
 "sysconf(name) -> integer\n\n\
 Return an integer-valued system configuration variable.");
 
 static PyObject *
-posix_sysconf(PyObject *self, PyObject *args)
+pyposix_sysconf(PyObject *self, PyObject *args)
 {
     PyObject *result = NULL;
     int name;
@@ -8343,7 +8343,7 @@ posix_sysconf(PyObject *self, PyObject *args)
         errno = 0;
         value = sysconf(name);
         if (value == -1 && errno != 0)
-            posix_error();
+            pyposix_error();
         else
             result = PyInt_FromLong(value);
     }
@@ -8402,22 +8402,22 @@ static int
 setup_confname_tables(PyObject *module)
 {
 #if defined(HAVE_FPATHCONF) || defined(HAVE_PATHCONF)
-    if (setup_confname_table(posix_constants_pathconf,
-                             sizeof(posix_constants_pathconf)
+    if (setup_confname_table(pyposix_constants_pathconf,
+                             sizeof(pyposix_constants_pathconf)
                                / sizeof(struct constdef),
                              "pathconf_names", module))
         return -1;
 #endif
 #ifdef HAVE_CONFSTR
-    if (setup_confname_table(posix_constants_confstr,
-                             sizeof(posix_constants_confstr)
+    if (setup_confname_table(pyposix_constants_confstr,
+                             sizeof(pyposix_constants_confstr)
                                / sizeof(struct constdef),
                              "confstr_names", module))
         return -1;
 #endif
 #ifdef HAVE_SYSCONF
-    if (setup_confname_table(posix_constants_sysconf,
-                             sizeof(posix_constants_sysconf)
+    if (setup_confname_table(pyposix_constants_sysconf,
+                             sizeof(pyposix_constants_sysconf)
                                / sizeof(struct constdef),
                              "sysconf_names", module))
         return -1;
@@ -8426,13 +8426,13 @@ setup_confname_tables(PyObject *module)
 }
 
 
-PyDoc_STRVAR(posix_abort__doc__,
+PyDoc_STRVAR(pyposix_abort__doc__,
 "abort() -> does not return!\n\n\
 Abort the interpreter immediately.  This 'dumps core' or otherwise fails\n\
 in the hardest way possible on the hosting operating system.");
 
 static PyObject *
-posix_abort(PyObject *self, PyObject *noargs)
+pyposix_abort(PyObject *self, PyObject *noargs)
 {
     abort();
     /*NOTREACHED*/
@@ -8520,14 +8520,14 @@ normal:
 #endif /* MS_WINDOWS */
 
 #ifdef HAVE_GETLOADAVG
-PyDoc_STRVAR(posix_getloadavg__doc__,
+PyDoc_STRVAR(pyposix_getloadavg__doc__,
 "getloadavg() -> (float, float, float)\n\n\
 Return the number of processes in the system run queue averaged over\n\
 the last 1, 5, and 15 minutes or raises OSError if the load average\n\
 was unobtainable");
 
 static PyObject *
-posix_getloadavg(PyObject *self, PyObject *noargs)
+pyposix_getloadavg(PyObject *self, PyObject *noargs)
 {
     double loadavg[3];
     if (getloadavg(loadavg, 3)!=3) {
@@ -8538,12 +8538,12 @@ posix_getloadavg(PyObject *self, PyObject *noargs)
 }
 #endif
 
-PyDoc_STRVAR(posix_urandom__doc__,
+PyDoc_STRVAR(pyposix_urandom__doc__,
 "urandom(n) -> str\n\n\
 Return n random bytes suitable for cryptographic use.");
 
 static PyObject *
-posix_urandom(PyObject *self, PyObject *args)
+pyposix_urandom(PyObject *self, PyObject *args)
 {
     Py_ssize_t size;
     PyObject *result;
@@ -8569,53 +8569,53 @@ posix_urandom(PyObject *self, PyObject *args)
 }
 
 #ifdef HAVE_SETRESUID
-PyDoc_STRVAR(posix_setresuid__doc__,
+PyDoc_STRVAR(pyposix_setresuid__doc__,
 "setresuid(ruid, euid, suid)\n\n\
 Set the current process's real, effective, and saved user ids.");
 
 static PyObject*
-posix_setresuid (PyObject *self, PyObject *args)
+pyposix_setresuid (PyObject *self, PyObject *args)
 {
     /* We assume uid_t is no larger than a long. */
     long ruid, euid, suid;
     if (!PyArg_ParseTuple(args, "lll", &ruid, &euid, &suid))
         return NULL;
     if (setresuid(ruid, euid, suid) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_RETURN_NONE;
 }
 #endif
 
 #ifdef HAVE_SETRESGID
-PyDoc_STRVAR(posix_setresgid__doc__,
+PyDoc_STRVAR(pyposix_setresgid__doc__,
 "setresgid(rgid, egid, sgid)\n\n\
 Set the current process's real, effective, and saved group ids.");
 
 static PyObject*
-posix_setresgid (PyObject *self, PyObject *args)
+pyposix_setresgid (PyObject *self, PyObject *args)
 {
     /* We assume uid_t is no larger than a long. */
     long rgid, egid, sgid;
     if (!PyArg_ParseTuple(args, "lll", &rgid, &egid, &sgid))
         return NULL;
     if (setresgid(rgid, egid, sgid) < 0)
-        return posix_error();
+        return pyposix_error();
     Py_RETURN_NONE;
 }
 #endif
 
 #ifdef HAVE_GETRESUID
-PyDoc_STRVAR(posix_getresuid__doc__,
+PyDoc_STRVAR(pyposix_getresuid__doc__,
 "getresuid() -> (ruid, euid, suid)\n\n\
 Get tuple of the current process's real, effective, and saved user ids.");
 
 static PyObject*
-posix_getresuid (PyObject *self, PyObject *noargs)
+pyposix_getresuid (PyObject *self, PyObject *noargs)
 {
     uid_t ruid, euid, suid;
     long l_ruid, l_euid, l_suid;
     if (getresuid(&ruid, &euid, &suid) < 0)
-        return posix_error();
+        return pyposix_error();
     /* Force the values into long's as we don't know the size of uid_t. */
     l_ruid = ruid;
     l_euid = euid;
@@ -8625,17 +8625,17 @@ posix_getresuid (PyObject *self, PyObject *noargs)
 #endif
 
 #ifdef HAVE_GETRESGID
-PyDoc_STRVAR(posix_getresgid__doc__,
+PyDoc_STRVAR(pyposix_getresgid__doc__,
 "getresgid() -> (rgid, egid, sgid)\n\n\
 Get tuple of the current process's real, effective, and saved group ids.");
 
 static PyObject*
-posix_getresgid (PyObject *self, PyObject *noargs)
+pyposix_getresgid (PyObject *self, PyObject *noargs)
 {
     uid_t rgid, egid, sgid;
     long l_rgid, l_egid, l_sgid;
     if (getresgid(&rgid, &egid, &sgid) < 0)
-        return posix_error();
+        return pyposix_error();
     /* Force the values into long's as we don't know the size of uid_t. */
     l_rgid = rgid;
     l_egid = egid;
@@ -8644,139 +8644,139 @@ posix_getresgid (PyObject *self, PyObject *noargs)
 }
 #endif
 
-static PyMethodDef posix_methods[] = {
-    {"access",          posix_access, METH_VARARGS, posix_access__doc__},
+static PyMethodDef pyposix_methods[] = {
+    {"access",          pyposix_access, METH_VARARGS, pyposix_access__doc__},
 #ifdef HAVE_TTYNAME
-    {"ttyname",         posix_ttyname, METH_VARARGS, posix_ttyname__doc__},
+    {"ttyname",         pyposix_ttyname, METH_VARARGS, pyposix_ttyname__doc__},
 #endif
-    {"chdir",           posix_chdir, METH_VARARGS, posix_chdir__doc__},
+    {"chdir",           pyposix_chdir, METH_VARARGS, pyposix_chdir__doc__},
 #ifdef HAVE_CHFLAGS
-    {"chflags",         posix_chflags, METH_VARARGS, posix_chflags__doc__},
+    {"chflags",         pyposix_chflags, METH_VARARGS, pyposix_chflags__doc__},
 #endif /* HAVE_CHFLAGS */
-    {"chmod",           posix_chmod, METH_VARARGS, posix_chmod__doc__},
+    {"chmod",           pyposix_chmod, METH_VARARGS, pyposix_chmod__doc__},
 #ifdef HAVE_FCHMOD
-    {"fchmod",          posix_fchmod, METH_VARARGS, posix_fchmod__doc__},
+    {"fchmod",          pyposix_fchmod, METH_VARARGS, pyposix_fchmod__doc__},
 #endif /* HAVE_FCHMOD */
 #ifdef HAVE_CHOWN
-    {"chown",           posix_chown, METH_VARARGS, posix_chown__doc__},
+    {"chown",           pyposix_chown, METH_VARARGS, pyposix_chown__doc__},
 #endif /* HAVE_CHOWN */
 #ifdef HAVE_LCHMOD
-    {"lchmod",          posix_lchmod, METH_VARARGS, posix_lchmod__doc__},
+    {"lchmod",          pyposix_lchmod, METH_VARARGS, pyposix_lchmod__doc__},
 #endif /* HAVE_LCHMOD */
 #ifdef HAVE_FCHOWN
-    {"fchown",          posix_fchown, METH_VARARGS, posix_fchown__doc__},
+    {"fchown",          pyposix_fchown, METH_VARARGS, pyposix_fchown__doc__},
 #endif /* HAVE_FCHOWN */
 #ifdef HAVE_LCHFLAGS
-    {"lchflags",        posix_lchflags, METH_VARARGS, posix_lchflags__doc__},
+    {"lchflags",        pyposix_lchflags, METH_VARARGS, pyposix_lchflags__doc__},
 #endif /* HAVE_LCHFLAGS */
 #ifdef HAVE_LCHOWN
-    {"lchown",          posix_lchown, METH_VARARGS, posix_lchown__doc__},
+    {"lchown",          pyposix_lchown, METH_VARARGS, pyposix_lchown__doc__},
 #endif /* HAVE_LCHOWN */
 #ifdef HAVE_CHROOT
-    {"chroot",          posix_chroot, METH_VARARGS, posix_chroot__doc__},
+    {"chroot",          pyposix_chroot, METH_VARARGS, pyposix_chroot__doc__},
 #endif
 #ifdef HAVE_CTERMID
-    {"ctermid",         posix_ctermid, METH_NOARGS, posix_ctermid__doc__},
+    {"ctermid",         pyposix_ctermid, METH_NOARGS, pyposix_ctermid__doc__},
 #endif
 #ifdef HAVE_GETCWD
-    {"getcwd",          posix_getcwd, METH_NOARGS, posix_getcwd__doc__},
+    {"getcwd",          pyposix_getcwd, METH_NOARGS, pyposix_getcwd__doc__},
 #ifdef Py_USING_UNICODE
-    {"getcwdu",         posix_getcwdu, METH_NOARGS, posix_getcwdu__doc__},
+    {"getcwdu",         pyposix_getcwdu, METH_NOARGS, pyposix_getcwdu__doc__},
 #endif
 #endif
 #ifdef HAVE_LINK
-    {"link",            posix_link, METH_VARARGS, posix_link__doc__},
+    {"link",            pyposix_link, METH_VARARGS, pyposix_link__doc__},
 #endif /* HAVE_LINK */
-    {"listdir",         posix_listdir, METH_VARARGS, posix_listdir__doc__},
-    {"lstat",           posix_lstat, METH_VARARGS, posix_lstat__doc__},
-    {"mkdir",           posix_mkdir, METH_VARARGS, posix_mkdir__doc__},
+    {"listdir",         pyposix_listdir, METH_VARARGS, pyposix_listdir__doc__},
+    {"lstat",           pyposix_lstat, METH_VARARGS, pyposix_lstat__doc__},
+    {"mkdir",           pyposix_mkdir, METH_VARARGS, pyposix_mkdir__doc__},
 #ifdef HAVE_NICE
-    {"nice",            posix_nice, METH_VARARGS, posix_nice__doc__},
+    {"nice",            pyposix_nice, METH_VARARGS, pyposix_nice__doc__},
 #endif /* HAVE_NICE */
 #ifdef HAVE_READLINK
-    {"readlink",        posix_readlink, METH_VARARGS, posix_readlink__doc__},
+    {"readlink",        pyposix_readlink, METH_VARARGS, pyposix_readlink__doc__},
 #endif /* HAVE_READLINK */
-    {"rename",          posix_rename, METH_VARARGS, posix_rename__doc__},
-    {"rmdir",           posix_rmdir, METH_VARARGS, posix_rmdir__doc__},
-    {"stat",            posix_stat, METH_VARARGS, posix_stat__doc__},
+    {"rename",          pyposix_rename, METH_VARARGS, pyposix_rename__doc__},
+    {"rmdir",           pyposix_rmdir, METH_VARARGS, pyposix_rmdir__doc__},
+    {"stat",            pyposix_stat, METH_VARARGS, pyposix_stat__doc__},
     {"stat_float_times", stat_float_times, METH_VARARGS, stat_float_times__doc__},
 #ifdef HAVE_SYMLINK
-    {"symlink",         posix_symlink, METH_VARARGS, posix_symlink__doc__},
+    {"symlink",         pyposix_symlink, METH_VARARGS, pyposix_symlink__doc__},
 #endif /* HAVE_SYMLINK */
 #ifdef HAVE_SYSTEM
-    {"system",          posix_system, METH_VARARGS, posix_system__doc__},
+    {"system",          pyposix_system, METH_VARARGS, pyposix_system__doc__},
 #endif
-    {"umask",           posix_umask, METH_VARARGS, posix_umask__doc__},
+    {"umask",           pyposix_umask, METH_VARARGS, pyposix_umask__doc__},
 #ifdef HAVE_UNAME
-    {"uname",           posix_uname, METH_NOARGS, posix_uname__doc__},
+    {"uname",           pyposix_uname, METH_NOARGS, pyposix_uname__doc__},
 #endif /* HAVE_UNAME */
-    {"unlink",          posix_unlink, METH_VARARGS, posix_unlink__doc__},
-    {"remove",          posix_unlink, METH_VARARGS, posix_remove__doc__},
-    {"utime",           posix_utime, METH_VARARGS, posix_utime__doc__},
+    {"unlink",          pyposix_unlink, METH_VARARGS, pyposix_unlink__doc__},
+    {"remove",          pyposix_unlink, METH_VARARGS, pyposix_remove__doc__},
+    {"utime",           pyposix_utime, METH_VARARGS, pyposix_utime__doc__},
 #ifdef HAVE_TIMES
-    {"times",           posix_times, METH_NOARGS, posix_times__doc__},
+    {"times",           pyposix_times, METH_NOARGS, pyposix_times__doc__},
 #endif /* HAVE_TIMES */
-    {"_exit",           posix__exit, METH_VARARGS, posix__exit__doc__},
+    {"_exit",           pyposix__exit, METH_VARARGS, pyposix__exit__doc__},
 #ifdef HAVE_EXECV
-    {"execv",           posix_execv, METH_VARARGS, posix_execv__doc__},
-    {"execve",          posix_execve, METH_VARARGS, posix_execve__doc__},
+    {"execv",           pyposix_execv, METH_VARARGS, pyposix_execv__doc__},
+    {"execve",          pyposix_execve, METH_VARARGS, pyposix_execve__doc__},
 #endif /* HAVE_EXECV */
 #ifdef HAVE_SPAWNV
-    {"spawnv",          posix_spawnv, METH_VARARGS, posix_spawnv__doc__},
-    {"spawnve",         posix_spawnve, METH_VARARGS, posix_spawnve__doc__},
+    {"spawnv",          pyposix_spawnv, METH_VARARGS, pyposix_spawnv__doc__},
+    {"spawnve",         pyposix_spawnve, METH_VARARGS, pyposix_spawnve__doc__},
 #if defined(PYOS_OS2)
-    {"spawnvp",         posix_spawnvp, METH_VARARGS, posix_spawnvp__doc__},
-    {"spawnvpe",        posix_spawnvpe, METH_VARARGS, posix_spawnvpe__doc__},
+    {"spawnvp",         pyposix_spawnvp, METH_VARARGS, pyposix_spawnvp__doc__},
+    {"spawnvpe",        pyposix_spawnvpe, METH_VARARGS, pyposix_spawnvpe__doc__},
 #endif /* PYOS_OS2 */
 #endif /* HAVE_SPAWNV */
 #ifdef HAVE_FORK1
-    {"fork1",       posix_fork1, METH_NOARGS, posix_fork1__doc__},
+    {"fork1",       pyposix_fork1, METH_NOARGS, pyposix_fork1__doc__},
 #endif /* HAVE_FORK1 */
 #ifdef HAVE_FORK
-    {"fork",            posix_fork, METH_NOARGS, posix_fork__doc__},
+    {"fork",            pyposix_fork, METH_NOARGS, pyposix_fork__doc__},
 #endif /* HAVE_FORK */
 #if defined(HAVE_OPENPTY) || defined(HAVE__GETPTY) || defined(HAVE_DEV_PTMX)
-    {"openpty",         posix_openpty, METH_NOARGS, posix_openpty__doc__},
+    {"openpty",         pyposix_openpty, METH_NOARGS, pyposix_openpty__doc__},
 #endif /* HAVE_OPENPTY || HAVE__GETPTY || HAVE_DEV_PTMX */
 #ifdef HAVE_FORKPTY
-    {"forkpty",         posix_forkpty, METH_NOARGS, posix_forkpty__doc__},
+    {"forkpty",         pyposix_forkpty, METH_NOARGS, pyposix_forkpty__doc__},
 #endif /* HAVE_FORKPTY */
 #ifdef HAVE_GETEGID
-    {"getegid",         posix_getegid, METH_NOARGS, posix_getegid__doc__},
+    {"getegid",         pyposix_getegid, METH_NOARGS, pyposix_getegid__doc__},
 #endif /* HAVE_GETEGID */
 #ifdef HAVE_GETEUID
-    {"geteuid",         posix_geteuid, METH_NOARGS, posix_geteuid__doc__},
+    {"geteuid",         pyposix_geteuid, METH_NOARGS, pyposix_geteuid__doc__},
 #endif /* HAVE_GETEUID */
 #ifdef HAVE_GETGID
-    {"getgid",          posix_getgid, METH_NOARGS, posix_getgid__doc__},
+    {"getgid",          pyposix_getgid, METH_NOARGS, pyposix_getgid__doc__},
 #endif /* HAVE_GETGID */
 #ifdef HAVE_GETGROUPS
-    {"getgroups",       posix_getgroups, METH_NOARGS, posix_getgroups__doc__},
+    {"getgroups",       pyposix_getgroups, METH_NOARGS, pyposix_getgroups__doc__},
 #endif
-    {"getpid",          posix_getpid, METH_NOARGS, posix_getpid__doc__},
+    {"getpid",          pyposix_getpid, METH_NOARGS, pyposix_getpid__doc__},
 #ifdef HAVE_GETPGRP
-    {"getpgrp",         posix_getpgrp, METH_NOARGS, posix_getpgrp__doc__},
+    {"getpgrp",         pyposix_getpgrp, METH_NOARGS, pyposix_getpgrp__doc__},
 #endif /* HAVE_GETPGRP */
 #ifdef HAVE_GETPPID
-    {"getppid",         posix_getppid, METH_NOARGS, posix_getppid__doc__},
+    {"getppid",         pyposix_getppid, METH_NOARGS, pyposix_getppid__doc__},
 #endif /* HAVE_GETPPID */
 #ifdef HAVE_GETUID
-    {"getuid",          posix_getuid, METH_NOARGS, posix_getuid__doc__},
+    {"getuid",          pyposix_getuid, METH_NOARGS, pyposix_getuid__doc__},
 #endif /* HAVE_GETUID */
 #ifdef HAVE_GETLOGIN
-    {"getlogin",        posix_getlogin, METH_NOARGS, posix_getlogin__doc__},
+    {"getlogin",        pyposix_getlogin, METH_NOARGS, pyposix_getlogin__doc__},
 #endif
 #ifdef HAVE_KILL
-    {"kill",            posix_kill, METH_VARARGS, posix_kill__doc__},
+    {"kill",            pyposix_kill, METH_VARARGS, pyposix_kill__doc__},
 #endif /* HAVE_KILL */
 #ifdef HAVE_KILLPG
-    {"killpg",          posix_killpg, METH_VARARGS, posix_killpg__doc__},
+    {"killpg",          pyposix_killpg, METH_VARARGS, pyposix_killpg__doc__},
 #endif /* HAVE_KILLPG */
 #ifdef HAVE_PLOCK
-    {"plock",           posix_plock, METH_VARARGS, posix_plock__doc__},
+    {"plock",           pyposix_plock, METH_VARARGS, pyposix_plock__doc__},
 #endif /* HAVE_PLOCK */
 #ifdef HAVE_POPEN
-    {"popen",           posix_popen, METH_VARARGS, posix_popen__doc__},
+    {"popen",           pyposix_popen, METH_VARARGS, pyposix_popen__doc__},
 #ifdef MS_WINDOWS
     {"popen2",          win32_popen2, METH_VARARGS},
     {"popen3",          win32_popen3, METH_VARARGS},
@@ -8792,180 +8792,180 @@ static PyMethodDef posix_methods[] = {
 #endif
 #endif /* HAVE_POPEN */
 #ifdef HAVE_SETUID
-    {"setuid",          posix_setuid, METH_VARARGS, posix_setuid__doc__},
+    {"setuid",          pyposix_setuid, METH_VARARGS, pyposix_setuid__doc__},
 #endif /* HAVE_SETUID */
 #ifdef HAVE_SETEUID
-    {"seteuid",         posix_seteuid, METH_VARARGS, posix_seteuid__doc__},
+    {"seteuid",         pyposix_seteuid, METH_VARARGS, pyposix_seteuid__doc__},
 #endif /* HAVE_SETEUID */
 #ifdef HAVE_SETEGID
-    {"setegid",         posix_setegid, METH_VARARGS, posix_setegid__doc__},
+    {"setegid",         pyposix_setegid, METH_VARARGS, pyposix_setegid__doc__},
 #endif /* HAVE_SETEGID */
 #ifdef HAVE_SETREUID
-    {"setreuid",        posix_setreuid, METH_VARARGS, posix_setreuid__doc__},
+    {"setreuid",        pyposix_setreuid, METH_VARARGS, pyposix_setreuid__doc__},
 #endif /* HAVE_SETREUID */
 #ifdef HAVE_SETREGID
-    {"setregid",        posix_setregid, METH_VARARGS, posix_setregid__doc__},
+    {"setregid",        pyposix_setregid, METH_VARARGS, pyposix_setregid__doc__},
 #endif /* HAVE_SETREGID */
 #ifdef HAVE_SETGID
-    {"setgid",          posix_setgid, METH_VARARGS, posix_setgid__doc__},
+    {"setgid",          pyposix_setgid, METH_VARARGS, pyposix_setgid__doc__},
 #endif /* HAVE_SETGID */
 #ifdef HAVE_SETGROUPS
-    {"setgroups",       posix_setgroups, METH_O, posix_setgroups__doc__},
+    {"setgroups",       pyposix_setgroups, METH_O, pyposix_setgroups__doc__},
 #endif /* HAVE_SETGROUPS */
 #ifdef HAVE_INITGROUPS
-    {"initgroups",      posix_initgroups, METH_VARARGS, posix_initgroups__doc__},
+    {"initgroups",      pyposix_initgroups, METH_VARARGS, pyposix_initgroups__doc__},
 #endif /* HAVE_INITGROUPS */
 #ifdef HAVE_GETPGID
-    {"getpgid",         posix_getpgid, METH_VARARGS, posix_getpgid__doc__},
+    {"getpgid",         pyposix_getpgid, METH_VARARGS, pyposix_getpgid__doc__},
 #endif /* HAVE_GETPGID */
 #ifdef HAVE_SETPGRP
-    {"setpgrp",         posix_setpgrp, METH_NOARGS, posix_setpgrp__doc__},
+    {"setpgrp",         pyposix_setpgrp, METH_NOARGS, pyposix_setpgrp__doc__},
 #endif /* HAVE_SETPGRP */
 #ifdef HAVE_WAIT
-    {"wait",            posix_wait, METH_NOARGS, posix_wait__doc__},
+    {"wait",            pyposix_wait, METH_NOARGS, pyposix_wait__doc__},
 #endif /* HAVE_WAIT */
 #ifdef HAVE_WAIT3
-    {"wait3",           posix_wait3, METH_VARARGS, posix_wait3__doc__},
+    {"wait3",           pyposix_wait3, METH_VARARGS, pyposix_wait3__doc__},
 #endif /* HAVE_WAIT3 */
 #ifdef HAVE_WAIT4
-    {"wait4",           posix_wait4, METH_VARARGS, posix_wait4__doc__},
+    {"wait4",           pyposix_wait4, METH_VARARGS, pyposix_wait4__doc__},
 #endif /* HAVE_WAIT4 */
 #if defined(HAVE_WAITPID) || defined(HAVE_CWAIT)
-    {"waitpid",         posix_waitpid, METH_VARARGS, posix_waitpid__doc__},
+    {"waitpid",         pyposix_waitpid, METH_VARARGS, pyposix_waitpid__doc__},
 #endif /* HAVE_WAITPID */
 #ifdef HAVE_GETSID
-    {"getsid",          posix_getsid, METH_VARARGS, posix_getsid__doc__},
+    {"getsid",          pyposix_getsid, METH_VARARGS, pyposix_getsid__doc__},
 #endif /* HAVE_GETSID */
 #ifdef HAVE_SETSID
-    {"setsid",          posix_setsid, METH_NOARGS, posix_setsid__doc__},
+    {"setsid",          pyposix_setsid, METH_NOARGS, pyposix_setsid__doc__},
 #endif /* HAVE_SETSID */
 #ifdef HAVE_SETPGID
-    {"setpgid",         posix_setpgid, METH_VARARGS, posix_setpgid__doc__},
+    {"setpgid",         pyposix_setpgid, METH_VARARGS, pyposix_setpgid__doc__},
 #endif /* HAVE_SETPGID */
 #ifdef HAVE_TCGETPGRP
-    {"tcgetpgrp",       posix_tcgetpgrp, METH_VARARGS, posix_tcgetpgrp__doc__},
+    {"tcgetpgrp",       pyposix_tcgetpgrp, METH_VARARGS, pyposix_tcgetpgrp__doc__},
 #endif /* HAVE_TCGETPGRP */
 #ifdef HAVE_TCSETPGRP
-    {"tcsetpgrp",       posix_tcsetpgrp, METH_VARARGS, posix_tcsetpgrp__doc__},
+    {"tcsetpgrp",       pyposix_tcsetpgrp, METH_VARARGS, pyposix_tcsetpgrp__doc__},
 #endif /* HAVE_TCSETPGRP */
-    {"open",            posix_open, METH_VARARGS, posix_open__doc__},
-    {"close",           posix_close, METH_VARARGS, posix_close__doc__},
-    {"closerange",      posix_closerange, METH_VARARGS, posix_closerange__doc__},
-    {"dup",             posix_dup, METH_VARARGS, posix_dup__doc__},
-    {"dup2",            posix_dup2, METH_VARARGS, posix_dup2__doc__},
-    {"lseek",           posix_lseek, METH_VARARGS, posix_lseek__doc__},
-    {"read",            posix_read, METH_VARARGS, posix_read__doc__},
-    {"write",           posix_write, METH_VARARGS, posix_write__doc__},
-    {"fstat",           posix_fstat, METH_VARARGS, posix_fstat__doc__},
-    {"fdopen",          posix_fdopen, METH_VARARGS, posix_fdopen__doc__},
-    {"isatty",          posix_isatty, METH_VARARGS, posix_isatty__doc__},
+    {"open",            pyposix_open, METH_VARARGS, pyposix_open__doc__},
+    {"close",           pyposix_close, METH_VARARGS, pyposix_close__doc__},
+    {"closerange",      pyposix_closerange, METH_VARARGS, pyposix_closerange__doc__},
+    {"dup",             pyposix_dup, METH_VARARGS, pyposix_dup__doc__},
+    {"dup2",            pyposix_dup2, METH_VARARGS, pyposix_dup2__doc__},
+    {"lseek",           pyposix_lseek, METH_VARARGS, pyposix_lseek__doc__},
+    {"read",            pyposix_read, METH_VARARGS, pyposix_read__doc__},
+    {"write",           pyposix_write, METH_VARARGS, pyposix_write__doc__},
+    {"fstat",           pyposix_fstat, METH_VARARGS, pyposix_fstat__doc__},
+    {"fdopen",          pyposix_fdopen, METH_VARARGS, pyposix_fdopen__doc__},
+    {"isatty",          pyposix_isatty, METH_VARARGS, pyposix_isatty__doc__},
 #ifdef HAVE_PIPE
-    {"pipe",            posix_pipe, METH_NOARGS, posix_pipe__doc__},
+    {"pipe",            pyposix_pipe, METH_NOARGS, pyposix_pipe__doc__},
 #endif
 #ifdef HAVE_MKFIFO
-    {"mkfifo",          posix_mkfifo, METH_VARARGS, posix_mkfifo__doc__},
+    {"mkfifo",          pyposix_mkfifo, METH_VARARGS, pyposix_mkfifo__doc__},
 #endif
 #if defined(HAVE_MKNOD) && defined(HAVE_MAKEDEV)
-    {"mknod",           posix_mknod, METH_VARARGS, posix_mknod__doc__},
+    {"mknod",           pyposix_mknod, METH_VARARGS, pyposix_mknod__doc__},
 #endif
 #ifdef HAVE_DEVICE_MACROS
-    {"major",           posix_major, METH_VARARGS, posix_major__doc__},
-    {"minor",           posix_minor, METH_VARARGS, posix_minor__doc__},
-    {"makedev",         posix_makedev, METH_VARARGS, posix_makedev__doc__},
+    {"major",           pyposix_major, METH_VARARGS, pyposix_major__doc__},
+    {"minor",           pyposix_minor, METH_VARARGS, pyposix_minor__doc__},
+    {"makedev",         pyposix_makedev, METH_VARARGS, pyposix_makedev__doc__},
 #endif
 #ifdef HAVE_FTRUNCATE
-    {"ftruncate",       posix_ftruncate, METH_VARARGS, posix_ftruncate__doc__},
+    {"ftruncate",       pyposix_ftruncate, METH_VARARGS, pyposix_ftruncate__doc__},
 #endif
 #ifdef HAVE_PUTENV
-    {"putenv",          posix_putenv, METH_VARARGS, posix_putenv__doc__},
+    {"putenv",          pyposix_putenv, METH_VARARGS, pyposix_putenv__doc__},
 #endif
 #ifdef HAVE_UNSETENV
-    {"unsetenv",        posix_unsetenv, METH_VARARGS, posix_unsetenv__doc__},
+    {"unsetenv",        pyposix_unsetenv, METH_VARARGS, pyposix_unsetenv__doc__},
 #endif
-    {"strerror",        posix_strerror, METH_VARARGS, posix_strerror__doc__},
+    {"strerror",        pyposix_strerror, METH_VARARGS, pyposix_strerror__doc__},
 #ifdef HAVE_FCHDIR
-    {"fchdir",          posix_fchdir, METH_O, posix_fchdir__doc__},
+    {"fchdir",          pyposix_fchdir, METH_O, pyposix_fchdir__doc__},
 #endif
 #ifdef HAVE_FSYNC
-    {"fsync",       posix_fsync, METH_O, posix_fsync__doc__},
+    {"fsync",       pyposix_fsync, METH_O, pyposix_fsync__doc__},
 #endif
 #ifdef HAVE_FDATASYNC
-    {"fdatasync",   posix_fdatasync,  METH_O, posix_fdatasync__doc__},
+    {"fdatasync",   pyposix_fdatasync,  METH_O, pyposix_fdatasync__doc__},
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #ifdef WCOREDUMP
-    {"WCOREDUMP",       posix_WCOREDUMP, METH_VARARGS, posix_WCOREDUMP__doc__},
+    {"WCOREDUMP",       pyposix_WCOREDUMP, METH_VARARGS, pyposix_WCOREDUMP__doc__},
 #endif /* WCOREDUMP */
 #ifdef WIFCONTINUED
-    {"WIFCONTINUED",posix_WIFCONTINUED, METH_VARARGS, posix_WIFCONTINUED__doc__},
+    {"WIFCONTINUED",pyposix_WIFCONTINUED, METH_VARARGS, pyposix_WIFCONTINUED__doc__},
 #endif /* WIFCONTINUED */
 #ifdef WIFSTOPPED
-    {"WIFSTOPPED",      posix_WIFSTOPPED, METH_VARARGS, posix_WIFSTOPPED__doc__},
+    {"WIFSTOPPED",      pyposix_WIFSTOPPED, METH_VARARGS, pyposix_WIFSTOPPED__doc__},
 #endif /* WIFSTOPPED */
 #ifdef WIFSIGNALED
-    {"WIFSIGNALED",     posix_WIFSIGNALED, METH_VARARGS, posix_WIFSIGNALED__doc__},
+    {"WIFSIGNALED",     pyposix_WIFSIGNALED, METH_VARARGS, pyposix_WIFSIGNALED__doc__},
 #endif /* WIFSIGNALED */
 #ifdef WIFEXITED
-    {"WIFEXITED",       posix_WIFEXITED, METH_VARARGS, posix_WIFEXITED__doc__},
+    {"WIFEXITED",       pyposix_WIFEXITED, METH_VARARGS, pyposix_WIFEXITED__doc__},
 #endif /* WIFEXITED */
 #ifdef WEXITSTATUS
-    {"WEXITSTATUS",     posix_WEXITSTATUS, METH_VARARGS, posix_WEXITSTATUS__doc__},
+    {"WEXITSTATUS",     pyposix_WEXITSTATUS, METH_VARARGS, pyposix_WEXITSTATUS__doc__},
 #endif /* WEXITSTATUS */
 #ifdef WTERMSIG
-    {"WTERMSIG",        posix_WTERMSIG, METH_VARARGS, posix_WTERMSIG__doc__},
+    {"WTERMSIG",        pyposix_WTERMSIG, METH_VARARGS, pyposix_WTERMSIG__doc__},
 #endif /* WTERMSIG */
 #ifdef WSTOPSIG
-    {"WSTOPSIG",        posix_WSTOPSIG, METH_VARARGS, posix_WSTOPSIG__doc__},
+    {"WSTOPSIG",        pyposix_WSTOPSIG, METH_VARARGS, pyposix_WSTOPSIG__doc__},
 #endif /* WSTOPSIG */
 #endif /* HAVE_SYS_WAIT_H */
 #if defined(HAVE_FSTATVFS) && defined(HAVE_SYS_STATVFS_H)
-    {"fstatvfs",        posix_fstatvfs, METH_VARARGS, posix_fstatvfs__doc__},
+    {"fstatvfs",        pyposix_fstatvfs, METH_VARARGS, pyposix_fstatvfs__doc__},
 #endif
 #if defined(HAVE_STATVFS) && defined(HAVE_SYS_STATVFS_H)
-    {"statvfs",         posix_statvfs, METH_VARARGS, posix_statvfs__doc__},
+    {"statvfs",         pyposix_statvfs, METH_VARARGS, pyposix_statvfs__doc__},
 #endif
 #ifdef HAVE_TMPFILE
-    {"tmpfile",         posix_tmpfile, METH_NOARGS, posix_tmpfile__doc__},
+    {"tmpfile",         pyposix_tmpfile, METH_NOARGS, pyposix_tmpfile__doc__},
 #endif
 #ifdef HAVE_TEMPNAM
-    {"tempnam",         posix_tempnam, METH_VARARGS, posix_tempnam__doc__},
+    {"tempnam",         pyposix_tempnam, METH_VARARGS, pyposix_tempnam__doc__},
 #endif
 #ifdef HAVE_TMPNAM
-    {"tmpnam",          posix_tmpnam, METH_NOARGS, posix_tmpnam__doc__},
+    {"tmpnam",          pyposix_tmpnam, METH_NOARGS, pyposix_tmpnam__doc__},
 #endif
 #ifdef HAVE_CONFSTR
-    {"confstr",         posix_confstr, METH_VARARGS, posix_confstr__doc__},
+    {"confstr",         pyposix_confstr, METH_VARARGS, pyposix_confstr__doc__},
 #endif
 #ifdef HAVE_SYSCONF
-    {"sysconf",         posix_sysconf, METH_VARARGS, posix_sysconf__doc__},
+    {"sysconf",         pyposix_sysconf, METH_VARARGS, pyposix_sysconf__doc__},
 #endif
 #ifdef HAVE_FPATHCONF
-    {"fpathconf",       posix_fpathconf, METH_VARARGS, posix_fpathconf__doc__},
+    {"fpathconf",       pyposix_fpathconf, METH_VARARGS, pyposix_fpathconf__doc__},
 #endif
 #ifdef HAVE_PATHCONF
-    {"pathconf",        posix_pathconf, METH_VARARGS, posix_pathconf__doc__},
+    {"pathconf",        pyposix_pathconf, METH_VARARGS, pyposix_pathconf__doc__},
 #endif
-    {"abort",           posix_abort, METH_NOARGS, posix_abort__doc__},
+    {"abort",           pyposix_abort, METH_NOARGS, pyposix_abort__doc__},
 #ifdef MS_WINDOWS
-    {"_getfullpathname",        posix__getfullpathname, METH_VARARGS, NULL},
-    {"_isdir",                  posix__isdir, METH_VARARGS, posix__isdir__doc__},
+    {"_getfullpathname",        pyposix__getfullpathname, METH_VARARGS, NULL},
+    {"_isdir",                  pyposix__isdir, METH_VARARGS, pyposix__isdir__doc__},
 #endif
 #ifdef HAVE_GETLOADAVG
-    {"getloadavg",      posix_getloadavg, METH_NOARGS, posix_getloadavg__doc__},
+    {"getloadavg",      pyposix_getloadavg, METH_NOARGS, pyposix_getloadavg__doc__},
 #endif
 #ifdef HAVE_SETRESUID
-    {"setresuid",       posix_setresuid, METH_VARARGS, posix_setresuid__doc__},
+    {"setresuid",       pyposix_setresuid, METH_VARARGS, pyposix_setresuid__doc__},
 #endif
 #ifdef HAVE_SETRESGID
-    {"setresgid",       posix_setresgid, METH_VARARGS, posix_setresgid__doc__},
+    {"setresgid",       pyposix_setresgid, METH_VARARGS, pyposix_setresgid__doc__},
 #endif
 #ifdef HAVE_GETRESUID
-    {"getresuid",       posix_getresuid, METH_NOARGS, posix_getresuid__doc__},
+    {"getresuid",       pyposix_getresuid, METH_NOARGS, pyposix_getresuid__doc__},
 #endif
 #ifdef HAVE_GETRESGID
-    {"getresgid",       posix_getresgid, METH_NOARGS, posix_getresgid__doc__},
+    {"getresgid",       pyposix_getresgid, METH_NOARGS, pyposix_getresgid__doc__},
 #endif
-    {"urandom",         posix_urandom,   METH_VARARGS, posix_urandom__doc__},
+    {"urandom",         pyposix_urandom,   METH_VARARGS, pyposix_urandom__doc__},
     {NULL,              NULL}            /* Sentinel */
 };
 
@@ -9270,8 +9270,8 @@ INITFUNC(void)
     PyObject *m, *v;
 
     m = Py_InitModule3(MODNAME,
-                       posix_methods,
-                       posix__doc__);
+                       pyposix_methods,
+                       pyposix__doc__);
     if (m == NULL)
         return;
 
@@ -9292,8 +9292,8 @@ INITFUNC(void)
     PyModule_AddObject(m, "error", PyExc_OSError);
 
 #ifdef HAVE_PUTENV
-    if (posix_putenv_garbage == NULL)
-        posix_putenv_garbage = PyDict_New();
+    if (pyposix_putenv_garbage == NULL)
+        pyposix_putenv_garbage = PyDict_New();
 #endif
 
     if (!initialized) {
